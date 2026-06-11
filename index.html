@@ -12,10 +12,35 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         
-        /* Esconde botões e selects na hora de gerar PDF */
+        /* Esconde botões e selects na hora da impressão nativa */
         @media print {
             .no-print { display: none !important; }
             .print-padding { padding: 0 !important; }
+        }
+
+        /* Compressão especial para forçar 1 página no PDF */
+        .pdf-compact {
+            padding: 15px !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .pdf-compact table th, .pdf-compact table td {
+            padding: 4px !important; /* Reduz espaço dentro das células */
+            font-size: 10px !important;
+        }
+        .pdf-compact .space-y-6 > * + * {
+            margin-top: 10px !important; /* Junta as tabelas */
+        }
+        .pdf-compact .mt-8 { margin-top: 15px !important; }
+        .pdf-compact .pt-4 { padding-top: 10px !important; }
+        .pdf-compact .mb-3 { margin-bottom: 5px !important; }
+        .pdf-compact #listaAtribuicaoBase {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 6px !important;
+        }
+        .pdf-compact #listaAtribuicaoBase > div {
+            padding: 4px !important;
+            font-size: 9px !important;
         }
     </style>
 </head>
@@ -97,7 +122,7 @@
                         </div>
                 </div>
 
-                <div class="mt-6 text-center text-[10px] text-slate-400 font-medium">
+                <div class="mt-6 pt-4 text-center text-[10px] text-slate-500 font-medium border-t border-slate-100">
                     <p>Ciente do(a) Docente: ___________________________________________________ Data: ___/___/2026</p>
                 </div>
             </div>
@@ -150,14 +175,11 @@
                 try {
                     let linhasBrutas = [];
                     
-                    // Leitor Inteligente para o ficheiro CSV da SEDUC
                     if (file.name.toLowerCase().endsWith('.csv')) {
                         const text = evt.target.result;
-                        // Divide as linhas independentemente do formato do enter no sistema operativo
                         const lines = text.split(/\r?\n/);
                         let headerIdx = -1;
                         
-                        // Localiza o cabeçalho (ignorando lixo no topo)
                         for(let i = 0; i < lines.length; i++) {
                             if(lines[i].includes('Professor') && lines[i].includes('Turma')) {
                                 headerIdx = i;
@@ -180,7 +202,6 @@
                             throw new Error("Cabeçalho não encontrado");
                         }
                     } else {
-                        // Trata Excel tradicional (.xlsx)
                         const data = new Uint8Array(evt.target.result);
                         const workbook = XLSX.read(data, {type: 'array'});
                         const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -219,7 +240,6 @@
             };
 
             if (file.name.toLowerCase().endsWith('.csv')) {
-                // windows-1252 assegura que os acentos portugueses (ç, ã, á) apareçam corretamente no CSV
                 reader.readAsText(file, 'windows-1252');
             } else {
                 reader.readAsArrayBuffer(file);
@@ -248,10 +268,8 @@
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
             
-            // Filtra aulas do professor
             const aulasProf = dadosOriginais.filter(i => i.Professor === prof);
             
-            // Resumo Superior
             let totalAulas = 0;
             turmasDoProfessor = []; 
             
@@ -278,7 +296,6 @@
             document.getElementById('printAulas').innerText = `Carga Atribuída: ${totalAulas} Aulas`;
             document.getElementById('printATPC').innerText = `ATPCs Devidas: ${calcularATPC(totalAulas)}`;
 
-            // Gera a Grade Interativa
             gerarTabelasInterativas();
         }
 
@@ -374,7 +391,11 @@
             }
         }
 
+        // Função mágica que prepara a folha pro PDF
         function prepararParaImpressao() {
+            const area = document.getElementById('exportableArea');
+            area.classList.add('pdf-compact'); // Encolhe as tabelas
+            
             document.querySelectorAll('.interactive-select').forEach(sel => {
                 const printDiv = sel.nextElementSibling;
                 printDiv.innerText = sel.value || "-";
@@ -384,6 +405,9 @@
         }
 
         function restaurarAposImpressao() {
+            const area = document.getElementById('exportableArea');
+            area.classList.remove('pdf-compact'); // Retorna pro tamanho normal
+            
             document.querySelectorAll('.interactive-select').forEach(sel => {
                 const printDiv = sel.nextElementSibling;
                 sel.classList.remove('hidden');
@@ -398,11 +422,11 @@
             prepararParaImpressao();
 
             const opt = {
-                margin:       [0.4, 0.4, 0.4, 0.4],
+                margin:       [0.2, 0.2, 0.2, 0.2], // Margens mais finas pra caber mais
                 filename:     `Horario_Individual_${prof.replace(/ /g, '_')}_2026.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' } // Formato Retrato (Em pé)
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
