@@ -56,114 +56,171 @@
                     <span class="bg-amber-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-amber-950">Montador Interativo</span>
                 </div>
                 <h1 class="text-2xl font-bold tracking-tight">Atribuição & Montador de Horário Individual</h1>
-                <p class="text-indigo-100 text-xs mt-0.5">Com Validação de Carga Horária e Bloqueio de Excesso de Aulas.</p>
+                <p class="text-indigo-100 text-xs mt-0.5">Validação de Carga, Múltiplos Arquivos e Inclusão Manual de Projetos.</p>
             </div>
         </header>
 
-        <!-- Upload e Controlos -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 no-print">
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
-                <div>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Base de Atribuição</h3>
-                </div>
-                <div class="relative border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 rounded-xl p-3 text-center cursor-pointer transition-colors group">
-                    <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                    <span class="text-2xl block mb-1 group-hover:scale-110 transition-transform">📁</span>
-                    <p class="text-[11px] font-semibold text-slate-700" id="uploadStatus">Selecionar arquivo</p>
-                </div>
-            </div>
-
-            <div class="lg:col-span-3 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Configurações da Grade</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Nome da Escola</label>
-                        <input list="escolasJacarei" id="escolaNome" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: EE Cel. Carlos Porto" onchange="atualizarCabecalho()">
-                        <datalist id="escolasJacarei">
-                            <option value="EE Amância Dias Sampaio">
-                            <option value="EE Antônio Viana">
-                            <option value="EE Benedicto Mauro dos Santos">
-                            <option value="EE Cel. Carlos Porto">
-                            <option value="EE Darci Lopes">
-                            <option value="EE Dirceu Junqueira de Souza">
-                            <option value="EE Francisco Feliciano F da Silva">
-                            <option value="EE João Cruz">
-                            <option value="EE Profª. Maria Helena P. P. Osório">
-                        </datalist>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Professor(a)</label>
-                        <select id="filterProfessor" onchange="renderizarDashboard()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
-                            <option value="Todos">-- Carregue o arquivo --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Acúmulo de Cargo?</label>
-                        <select id="temAcumulo" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
-                            <option value="nao">Não (Máximo 10 aulas/dia)</option>
-                            <option value="sim">Sim (Máximo 14 aulas/dia)</option>
-                        </select>
-                    </div>
-                </div>
+        <!-- Upload Global Acumulativo -->
+        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative no-print">
+            <button onclick="limparSistema()" class="absolute top-4 right-4 text-[10px] text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2 py-1 rounded transition-colors shadow-sm border border-rose-100">🗑 Limpar Tudo</button>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Base de Atribuição (Acumulativa)</h3>
+            <p class="text-[10px] text-slate-500 mb-3">Você pode selecionar vários arquivos de uma vez ou carregar novos arquivos sucessivamente. Eles serão somados.</p>
+            
+            <div class="relative border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 rounded-xl p-4 text-center cursor-pointer transition-colors group">
+                <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                <span class="text-2xl block mb-1 group-hover:scale-110 transition-transform">📁</span>
+                <p class="text-xs font-semibold text-slate-700" id="uploadStatus">Clique ou arraste o(s) arquivo(s) CSV/Excel aqui</p>
             </div>
         </div>
 
-        <main id="exportableArea" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[250px] flex flex-col justify-center">
-            
-            <div id="emptyState" class="text-center py-8 space-y-2 no-print">
-                <span class="text-4xl">⚡</span>
-                <h3 class="text-sm font-bold text-slate-700">Aguardando docente...</h3>
-                <p class="text-slate-400 text-xs max-w-sm mx-auto">Selecione um professor para visualizar a sua carga horária e montar o horário individual na grade com validação inteligente.</p>
-            </div>
+        <!-- Navegação de Abas -->
+        <div id="tabsNav" class="hidden border-b border-slate-200 no-print">
+            <nav class="-mb-px flex space-x-8">
+                <button onclick="mudarAba('montador')" id="btnAbaMontador" class="border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors">
+                    Montador de Grade
+                </button>
+                <button onclick="mudarAba('disciplinas')" id="btnAbaDisciplinas" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors">
+                    Mapa de Disciplinas
+                </button>
+            </nav>
+        </div>
 
-            <div id="dashboardContent" class="hidden space-y-6">
-                <!-- Cabeçalho de Impressão -->
-                <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
-                    <div>
-                        <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
-                        <p class="text-xs text-slate-500 mt-1"><span id="printEscolaNome" class="font-bold text-slate-700">ESCOLA ESTADUAL</span> — Horário de Trabalho Individual — Ano Letivo 2026</p>
-                    </div>
-                    <div class="text-right">
-                        <div id="printAulas" class="text-sm font-bold text-slate-700">Aulas: 0</div>
-                        <div id="printATPC" class="text-sm font-bold text-indigo-600">ATPC: 0</div>
+        <!-- CONTEÚDO DAS ABAS -->
+        <div id="tabsContent" class="hidden">
+            
+            <!-- ABA 1: MONTADOR -->
+            <div id="abaMontador" class="space-y-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 no-print">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Configurações da Grade</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Nome da Escola</label>
+                            <input list="escolasJacarei" id="escolaNome" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: EE Cel. Carlos Porto" onchange="atualizarCabecalho()">
+                            <datalist id="escolasJacarei">
+                                <option value="EE Amância Dias Sampaio">
+                                <option value="EE Antônio Viana">
+                                <option value="EE Benedicto Mauro dos Santos">
+                                <option value="EE Cel. Carlos Porto">
+                                <option value="EE Darci Lopes">
+                                <option value="EE Dirceu Junqueira de Souza">
+                                <option value="EE Francisco Feliciano F da Silva">
+                                <option value="EE João Cruz">
+                                <option value="EE Profª. Maria Helena P. P. Osório">
+                            </datalist>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Professor(a)</label>
+                            <select id="filterProfessor" onchange="renderizarDashboard()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
+                                <option value="Todos">-- Carregue o arquivo --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Acúmulo de Cargo?</label>
+                            <select id="temAcumulo" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
+                                <option value="nao">Não (Máximo 10 aulas/dia)</option>
+                                <option value="sim">Sim (Máximo 14 aulas/dia)</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Montador Interativo de Grade -->
-                <div>
-                    <div class="flex justify-between items-center mb-3 no-print">
-                        <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Montar Grade Semanal</h3>
-                        <div class="flex gap-2">
-                            <button onclick="limparGrade()" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-semibold transition-colors">Limpar Grade</button>
-                            <button onclick="exportarGradePDF()" class="text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-semibold border border-rose-200 transition-colors">📄 Baixar PDF</button>
-                            <button onclick="exportarGradeExcel()" class="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200 transition-colors">🟢 Baixar Excel</button>
+                <main id="exportableArea" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[250px] flex flex-col justify-center">
+                    <div id="emptyState" class="text-center py-8 space-y-2 no-print">
+                        <span class="text-4xl">⚡</span>
+                        <h3 class="text-sm font-bold text-slate-700">Aguardando docente...</h3>
+                        <p class="text-slate-400 text-xs max-w-sm mx-auto">Selecione um professor para montar o horário com validação inteligente e projetos.</p>
+                    </div>
+
+                    <div id="dashboardContent" class="hidden space-y-6">
+                        <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
+                            <div>
+                                <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
+                                <p class="text-xs text-slate-500 mt-1"><span id="printEscolaNome" class="font-bold text-slate-700">ESCOLA ESTADUAL</span> — Horário de Trabalho Individual — Ano Letivo 2026</p>
+                            </div>
+                            <div class="text-right">
+                                <div id="printAulas" class="text-sm font-bold text-slate-700">Aulas: 0</div>
+                                <div id="printATPC" class="text-sm font-bold text-indigo-600">ATPC: 0</div>
+                            </div>
+                        </div>
+
+                        <!-- Formulário Manual de Aulas -->
+                        <div class="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl no-print">
+                            <h4 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-3">➕ Adicionar Projeto ou Aula Manual</h4>
+                            <div class="flex flex-col md:flex-row gap-3">
+                                <input type="text" id="manualMateria" placeholder="Disciplina / Projeto (Ex: Sala de Leitura)" class="w-full md:w-1/3 p-2 text-xs font-medium border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
+                                <input type="text" id="manualSerie" placeholder="Série / Turma (Ex: Geral ou 6ºA)" class="w-full md:w-1/3 p-2 text-xs font-medium border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
+                                <input type="number" id="manualAulas" placeholder="Nº Aulas" min="1" class="w-full md:w-1/4 p-2 text-xs font-medium border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
+                                <button onclick="adicionarAulaManual()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-6 rounded-lg transition-colors whitespace-nowrap shadow-sm">Incluir</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3 no-print">
+                                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Montar Grade Semanal</h3>
+                                <div class="flex gap-2">
+                                    <button onclick="limparGrade()" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-semibold transition-colors">Limpar Grade</button>
+                                    <button onclick="exportarGradePDF()" class="text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-semibold border border-rose-200 transition-colors">📄 Baixar PDF</button>
+                                    <button onclick="exportarGradeExcel()" class="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200 transition-colors">🟢 Baixar Excel</button>
+                                </div>
+                            </div>
+
+                            <div id="gradeContainer" class="space-y-6"></div>
+                        </div>
+                        
+                        <div class="mt-8 pt-4 border-t border-slate-100">
+                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência para Validação)</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase"></div>
+                        </div>
+
+                        <div class="mt-6 pt-4 text-center text-[10px] text-slate-500 font-medium border-t border-slate-100">
+                            <p>Ciente do(a) Docente: ___________________________________________________ Data: ___/___/2026</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+
+            <!-- ABA 2: MAPA DE DISCIPLINAS -->
+            <div id="abaDisciplinas" class="hidden space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 pb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800">Mapa de Professores por Disciplina</h2>
+                            <p class="text-xs text-slate-500">Veja quem leciona cada matéria (inclui Projetos Manuais adicionados).</p>
+                        </div>
+                        <div class="w-full md:w-64">
+                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Filtrar Disciplina</label>
+                            <select id="filterMateriaGeral" onchange="renderizarTabelaDisciplinas()" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
+                                <option value="Todas">Todas as Disciplinas</option>
+                            </select>
                         </div>
                     </div>
 
-                    <div id="gradeContainer" class="space-y-6">
-                        <!-- Gerado via JS (Tabelas Manhã e Tarde) -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] tracking-wider border-y border-slate-200">
+                                    <th class="p-3 w-1/4">Disciplina / Projeto</th>
+                                    <th class="p-3 w-1/3">Professor(a)</th>
+                                    <th class="p-3 w-1/4">Série / Turma</th>
+                                    <th class="p-3 w-1/6 text-center">Qtd. Aulas</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDisciplinas" class="divide-y divide-slate-100 text-slate-700">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                
-                <!-- Lista de Aulas Atribuídas como Referência na Impressão -->
-                <div class="mt-8 pt-4 border-t border-slate-100">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência para Validação)</h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase">
-                        <!-- Gerado via JS -->
-                    </div>
-                </div>
-
-                <div class="mt-6 pt-4 text-center text-[10px] text-slate-500 font-medium border-t border-slate-100">
-                    <p>Ciente do(a) Docente: ___________________________________________________ Data: ___/___/2026</p>
                 </div>
             </div>
-        </main>
+
+        </div>
     </div>
 
     <script>
+        // Array global acumulativo
         let dadosOriginais = [];
         let turmasDoProfessor = [];
-        let limitesAtribuicao = {}; // Armazena a qtd máxima de aulas por turma
+        let limitesAtribuicao = {}; 
 
         const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
         
@@ -204,99 +261,246 @@
             document.getElementById('printEscolaNome').innerText = escola ? escola.toUpperCase() : 'ESCOLA ESTADUAL';
         }
 
-        document.getElementById('fileUpload').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            document.getElementById('uploadStatus').innerHTML = `⏳ Processando...`;
-            const reader = new FileReader();
+        function limparSistema() {
+            dadosOriginais = [];
+            document.getElementById('uploadStatus').innerHTML = `Clique ou arraste o(s) arquivo(s) CSV/Excel aqui`;
+            document.getElementById('uploadStatus').classList.remove('text-emerald-600');
+            document.getElementById('tabsNav').classList.add('hidden');
+            document.getElementById('tabsContent').classList.add('hidden');
+            document.getElementById('filterProfessor').innerHTML = '<option value="Todos">-- Carregue o arquivo --</option>';
+            document.getElementById('fileUpload').value = ""; 
+        }
 
-            reader.onload = function(evt) {
-                try {
-                    let linhasBrutas = [];
-                    
-                    if (file.name.toLowerCase().endsWith('.csv')) {
-                        const text = evt.target.result;
-                        const lines = text.split(/\r?\n/);
-                        let headerIdx = -1;
+        // Lógica de Abas
+        function mudarAba(abaDestino) {
+            document.getElementById('abaMontador').classList.add('hidden');
+            document.getElementById('abaDisciplinas').classList.add('hidden');
+            
+            document.getElementById('btnAbaMontador').className = "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
+            document.getElementById('btnAbaDisciplinas').className = "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
+
+            if (abaDestino === 'montador') {
+                document.getElementById('abaMontador').classList.remove('hidden');
+                document.getElementById('btnAbaMontador').className = "border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors";
+            } else {
+                document.getElementById('abaDisciplinas').classList.remove('hidden');
+                document.getElementById('btnAbaDisciplinas').className = "border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors";
+            }
+        }
+
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (!files.length) return;
+            
+            document.getElementById('uploadStatus').innerHTML = `⏳ Processando arquivos...`;
+            let processados = 0;
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+
+                reader.onload = function(evt) {
+                    try {
+                        let linhasBrutas = [];
                         
-                        for(let i = 0; i < lines.length; i++) {
-                            if(lines[i].includes('Professor') && lines[i].includes('Turma')) {
-                                headerIdx = i;
-                                break;
+                        if (file.name.toLowerCase().endsWith('.csv')) {
+                            const text = evt.target.result;
+                            const lines = text.split(/\r?\n/);
+                            let headerIdx = -1;
+                            
+                            for(let i = 0; i < lines.length; i++) {
+                                if(lines[i].includes('Professor') && lines[i].includes('Turma')) {
+                                    headerIdx = i;
+                                    break;
+                                }
                             }
-                        }
-                        
-                        if(headerIdx !== -1) {
-                            const headers = lines[headerIdx].split(';');
-                            for(let i = headerIdx + 1; i < lines.length; i++) {
-                                if(!lines[i].trim()) continue;
-                                const cols = lines[i].split(';');
-                                let obj = {};
-                                headers.forEach((h, idx) => {
-                                    obj[h.trim()] = cols[idx] ? cols[idx].trim() : '';
-                                });
-                                linhasBrutas.push(obj);
+                            
+                            if(headerIdx !== -1) {
+                                const headers = lines[headerIdx].split(';');
+                                for(let i = headerIdx + 1; i < lines.length; i++) {
+                                    if(!lines[i].trim()) continue;
+                                    const cols = lines[i].split(';');
+                                    let obj = {};
+                                    headers.forEach((h, idx) => {
+                                        obj[h.trim()] = cols[idx] ? cols[idx].trim() : '';
+                                    });
+                                    linhasBrutas.push(obj);
+                                }
+                            } else {
+                                throw new Error("Cabeçalho não encontrado no arquivo: " + file.name);
                             }
                         } else {
-                            throw new Error("Cabeçalho não encontrado");
-                        }
-                    } else {
-                        const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, {type: 'array'});
-                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                        const rawJson = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                        
-                        let headerIdx = 0;
-                        for(let i=0; i<rawJson.length; i++) {
-                            if(rawJson[i] && rawJson[i].includes('Professor') && rawJson[i].includes('Turma')) {
-                                headerIdx = i;
-                                break;
+                            const data = new Uint8Array(evt.target.result);
+                            const workbook = XLSX.read(data, {type: 'array'});
+                            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                            const rawJson = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                            
+                            let headerIdx = 0;
+                            for(let i=0; i<rawJson.length; i++) {
+                                if(rawJson[i] && rawJson[i].includes('Professor') && rawJson[i].includes('Turma')) {
+                                    headerIdx = i;
+                                    break;
+                                }
                             }
+                            linhasBrutas = XLSX.utils.sheet_to_json(sheet, {range: headerIdx});
                         }
-                        linhasBrutas = XLSX.utils.sheet_to_json(sheet, {range: headerIdx});
+
+                        const novasAulas = linhasBrutas.map(row => ({
+                            Professor: row['Professor'] ? row['Professor'].trim() : 'Não Informado',
+                            Serie: row['Turma'] ? row['Turma'].trim() : 'Não Informado',
+                            Aulas: row['Qtde. Aulas'] ? parseInt(row['Qtde. Aulas']) : 0,
+                            Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado'
+                        })).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
+
+                        // Acumula os dados
+                        dadosOriginais = dadosOriginais.concat(novasAulas);
+
+                    } catch (err) {
+                        console.error(err);
+                        alert(err.message || `Erro ao ler as colunas do arquivo ${file.name}.`);
                     }
 
-                    dadosOriginais = linhasBrutas.map(row => ({
-                        Professor: row['Professor'] ? row['Professor'].trim() : 'Não Informado',
-                        Serie: row['Turma'] ? row['Turma'].trim() : 'Não Informado',
-                        Aulas: row['Qtde. Aulas'] ? parseInt(row['Qtde. Aulas']) : 0,
-                        Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado'
-                    })).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
-
-                    if (dadosOriginais.length === 0) {
-                        throw new Error("Ficheiro vazio ou sem professores válidos.");
-                    }
-
-                    document.getElementById('uploadStatus').innerHTML = `✅ Ficheiro Carregado!`;
-                    document.getElementById('uploadStatus').classList.add('text-emerald-600');
+                    processados++;
                     
-                    popularFiltrosOpcoes();
-                } catch (err) {
-                    console.error(err);
-                    alert('Erro ao ler as colunas. Certifique-se de que é o ficheiro de Atribuição correto da SEDUC.');
-                    document.getElementById('uploadStatus').innerHTML = `❌ Erro de Leitura`;
-                }
-            };
+                    // Se finalizou todos os arquivos selecionados
+                    if (processados === files.length) {
+                        if (dadosOriginais.length > 0) {
+                            document.getElementById('uploadStatus').innerHTML = `✅ ${dadosOriginais.length} registros acumulados!`;
+                            document.getElementById('uploadStatus').classList.add('text-emerald-600');
+                            
+                            document.getElementById('tabsNav').classList.remove('hidden');
+                            document.getElementById('tabsContent').classList.remove('hidden');
+                            
+                            if (document.getElementById('abaMontador').classList.contains('hidden') && document.getElementById('abaDisciplinas').classList.contains('hidden')) {
+                                mudarAba('montador');
+                            }
 
-            if (file.name.toLowerCase().endsWith('.csv')) {
-                reader.readAsText(file, 'windows-1252');
-            } else {
-                reader.readAsArrayBuffer(file);
-            }
+                            popularFiltrosOpcoes();
+                            popularFiltroMateriasGeral();
+                            renderizarTabelaDisciplinas();
+                            
+                            // Se já tem professor selecionado, atualiza
+                            if (document.getElementById('filterProfessor').value !== "Todos") {
+                                renderizarDashboard();
+                            }
+                        } else {
+                            document.getElementById('uploadStatus').innerHTML = `❌ Nenhum dado válido encontrado.`;
+                            document.getElementById('uploadStatus').classList.remove('text-emerald-600');
+                        }
+                    }
+                };
+
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    reader.readAsText(file, 'windows-1252');
+                } else {
+                    reader.readAsArrayBuffer(file);
+                }
+            });
         });
+
+        // FUNÇÃO DE INCLUSÃO MANUAL DE AULAS/PROJETOS
+        function adicionarAulaManual() {
+            const prof = document.getElementById('filterProfessor').value;
+            if(prof === "Todos") return alert("Selecione um professor primeiro!");
+            
+            const materia = document.getElementById('manualMateria').value.trim();
+            const serie = document.getElementById('manualSerie').value.trim();
+            const aulas = parseInt(document.getElementById('manualAulas').value);
+            
+            if(!materia || !serie || !aulas || isNaN(aulas)) {
+                return alert("Preencha corretamente a Disciplina, a Série e a Quantidade de Aulas.");
+            }
+
+            dadosOriginais.push({
+                Professor: prof,
+                Serie: serie,
+                Aulas: aulas,
+                Materia: materia
+            });
+
+            // Limpa o formzinho manual
+            document.getElementById('manualMateria').value = '';
+            document.getElementById('manualSerie').value = '';
+            document.getElementById('manualAulas').value = '';
+
+            alert("Projeto / Aula Manual adicionado com sucesso à carga do professor!");
+            
+            // Atualiza tudo
+            popularFiltroMateriasGeral();
+            renderizarTabelaDisciplinas();
+            renderizarDashboard(); 
+        }
 
         function popularFiltrosOpcoes() {
             const professores = new Set();
             dadosOriginais.forEach(i => professores.add(i.Professor));
 
             const selProf = document.getElementById('filterProfessor');
+            const valorAtual = selProf.value;
+            
             selProf.innerHTML = '<option value="Todos">-- Selecione um Docente --</option>';
             Array.from(professores).sort().forEach(p => {
                 selProf.innerHTML += `<option value="${p}">${p}</option>`;
             });
+
+            // Mantém a seleção se existir
+            if(Array.from(professores).includes(valorAtual)) {
+                selProf.value = valorAtual;
+            }
         }
 
+        // LÓGICA DA ABA MAPA DE DISCIPLINAS
+        function popularFiltroMateriasGeral() {
+            const materias = new Set();
+            dadosOriginais.forEach(i => materias.add(i.Materia));
+
+            const selMat = document.getElementById('filterMateriaGeral');
+            const valorAtual = selMat.value;
+
+            selMat.innerHTML = '<option value="Todas">Todas as Disciplinas / Projetos</option>';
+            Array.from(materias).sort().forEach(m => {
+                selMat.innerHTML += `<option value="${m}">${m}</option>`;
+            });
+
+            if(Array.from(materias).includes(valorAtual)) {
+                selMat.value = valorAtual;
+            }
+        }
+
+        function renderizarTabelaDisciplinas() {
+            const matFiltrada = document.getElementById('filterMateriaGeral').value;
+            const tbody = document.getElementById('tbodyDisciplinas');
+            tbody.innerHTML = '';
+
+            // Agrupa por Matéria -> Professor
+            const mapa = {};
+            dadosOriginais.forEach(item => {
+                if (matFiltrada !== "Todas" && item.Materia !== matFiltrada) return;
+                
+                if (!mapa[item.Materia]) mapa[item.Materia] = [];
+                mapa[item.Materia].push(item);
+            });
+
+            Object.keys(mapa).sort().forEach(mat => {
+                const itensMat = mapa[mat].sort((a,b) => a.Professor.localeCompare(b.Professor));
+                
+                itensMat.forEach((item, index) => {
+                    const exibeMateria = (index === 0) 
+                        ? `<td class="p-3 font-bold text-indigo-700 bg-indigo-50/30 border-r border-slate-100" rowspan="${itensMat.length}">${mat}</td>` 
+                        : '';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            ${exibeMateria}
+                            <td class="p-3 font-medium text-slate-700">${item.Professor}</td>
+                            <td class="p-3 text-slate-600">${item.Serie}</td>
+                            <td class="p-3 text-center font-semibold text-slate-600">${item.Aulas}</td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        // LÓGICA DA ABA MONTADOR
         function renderizarDashboard() {
             const prof = document.getElementById('filterProfessor').value;
             atualizarCabecalho();
@@ -327,14 +531,21 @@
                     turmasDoProfessor.push(optName);
                 }
                 
-                // Grava o limite de aulas dessa turma/matéria
-                limitesAtribuicao[optName] = a.Aulas;
-                
+                // Soma (agrega) as aulas se houver arquivos repetidos ou registros múltiplos da mesma matéria pro prof
+                limitesAtribuicao[optName] = (limitesAtribuicao[optName] || 0) + a.Aulas;
+            });
+
+            turmasDoProfessor.sort().forEach(optName => {
+                const parts = optName.split(' - ');
+                const serie = parts[0];
+                const mat = parts.slice(1).join(' - ');
+                const maxAulas = limitesAtribuicao[optName];
+
                 listaAtribuicaoBase.innerHTML += `
                     <div class="bg-slate-50 border border-slate-200 rounded p-2 text-center text-[10px]">
-                        <span class="font-bold text-slate-700 block">${a.Serie}</span>
-                        <span class="text-indigo-600 font-semibold block truncate">${a.Materia}</span>
-                        <span class="text-slate-500">${a.Aulas} Aulas permitidas</span>
+                        <span class="font-bold text-slate-700 block">${serie}</span>
+                        <span class="text-indigo-600 font-semibold block truncate">${mat}</span>
+                        <span class="text-slate-500">${maxAulas} Aulas permitidas</span>
                     </div>
                 `;
             });
@@ -405,10 +616,8 @@
                 container.innerHTML += html;
             });
 
-            // Adiciona Lógica de Validação aos selects
             document.querySelectorAll('.interactive-select').forEach(sel => {
                 
-                // Salva o valor anterior quando clica, para poder reverter caso dê erro
                 sel.addEventListener('focus', function() {
                     this.dataset.prev = this.value;
                 });
@@ -419,7 +628,6 @@
                     const isAcumulo = document.getElementById('temAcumulo').value === 'sim';
                     const limiteDiario = isAcumulo ? 14 : 10;
 
-                    // 1. VALIDAÇÃO DE LIMITE DE AULAS POR TURMA (Ignora ATPC, Intervalo e Janela)
                     if (newValue && newValue !== "☕ Intervalo" && newValue !== "Janela / Vago" && newValue !== "ATPC (Escola)") {
                         let totalAtribuidoGrade = 0;
                         document.querySelectorAll('.interactive-select').forEach(s => {
@@ -429,11 +637,10 @@
                         if (totalAtribuidoGrade > limitesAtribuicao[newValue]) {
                             alert(`BLOQUEIO DE ATRIBUIÇÃO:\nO docente só possui ${limitesAtribuicao[newValue]} aula(s) atribuídas para ${newValue}.\nVocê não pode inserir mais do que o permitido.`);
                             this.value = this.dataset.prev;
-                            return; // Cancela a mudança
+                            return; 
                         }
                     }
 
-                    // 2. VALIDAÇÃO DE CARGA HORÁRIA DIÁRIA (Soma Aulas + ATPC do dia)
                     if (newValue && newValue !== "☕ Intervalo" && newValue !== "Janela / Vago") {
                         let totalNoDia = 0;
                         document.querySelectorAll(`.interactive-select[data-dia="${dia}"]`).forEach(s => {
@@ -445,11 +652,10 @@
                         if (totalNoDia > limiteDiario) {
                             alert(`LIMITE DIÁRIO EXCEDIDO:\nProfessores ${isAcumulo ? "COM" : "SEM"} acúmulo podem ter no máximo ${limiteDiario} aulas/ATPC por dia.\nA grade de ${dia} já está cheia.`);
                             this.value = this.dataset.prev;
-                            return; // Cancela a mudança
+                            return; 
                         }
                     }
 
-                    // Se passou nas verificações, atualiza o valor prévio e as cores
                     this.dataset.prev = newValue;
 
                     const printDiv = this.nextElementSibling;
