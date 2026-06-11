@@ -25,11 +25,11 @@
             box-shadow: none !important;
         }
         .pdf-compact table th, .pdf-compact table td {
-            padding: 4px !important; /* Reduz espaço dentro das células */
+            padding: 4px !important; 
             font-size: 10px !important;
         }
         .pdf-compact .space-y-6 > * + * {
-            margin-top: 10px !important; /* Junta as tabelas */
+            margin-top: 10px !important; 
         }
         .pdf-compact .mt-8 { margin-top: 15px !important; }
         .pdf-compact .pt-4 { padding-top: 10px !important; }
@@ -48,6 +48,7 @@
 
     <div class="max-w-7xl mx-auto space-y-6 print-padding">
         
+        <!-- Cabeçalho -->
         <header class="bg-gradient-to-r from-blue-700 via-indigo-600 to-indigo-700 text-white p-6 rounded-2xl shadow-sm no-print flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 mb-1">
@@ -55,10 +56,11 @@
                     <span class="bg-amber-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-amber-950">Montador Interativo</span>
                 </div>
                 <h1 class="text-2xl font-bold tracking-tight">Atribuição & Montador de Horário Individual</h1>
-                <p class="text-indigo-100 text-xs mt-0.5">Leia a base da SEDUC e aloje as aulas e ATPCs na grade de cada docente.</p>
+                <p class="text-indigo-100 text-xs mt-0.5">Leia a base da SEDUC e aloje as aulas, intervalos e ATPCs na grade de cada docente.</p>
             </div>
         </header>
 
+        <!-- Upload e Controlos -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 no-print">
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
@@ -91,6 +93,7 @@
             </div>
 
             <div id="dashboardContent" class="hidden space-y-6">
+                <!-- Cabeçalho de Impressão -->
                 <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
                     <div>
                         <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
@@ -102,6 +105,7 @@
                     </div>
                 </div>
 
+                <!-- Montador Interativo de Grade -->
                 <div>
                     <div class="flex justify-between items-center mb-3 no-print">
                         <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Montar Grade Semanal</h3>
@@ -113,13 +117,16 @@
                     </div>
 
                     <div id="gradeContainer" class="space-y-6">
-                        </div>
+                        <!-- Gerado via JS (Tabelas Manhã e Tarde) -->
+                    </div>
                 </div>
                 
+                <!-- Lista de Aulas Atribuídas como Referência na Impressão -->
                 <div class="mt-8 pt-4 border-t border-slate-100">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência)</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase">
-                        </div>
+                        <!-- Gerado via JS -->
+                    </div>
                 </div>
 
                 <div class="mt-6 pt-4 text-center text-[10px] text-slate-500 font-medium border-t border-slate-100">
@@ -134,24 +141,28 @@
         let turmasDoProfessor = [];
 
         const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+        
+        // Estrutura atualizada com Intervalos Interativos e Aulas Mistas
         const estruturaHorarios = {
             "Manhã": [
                 { nome: "1ª Aula", tempo: "07:00 às 07:50", isIntervalo: false },
                 { nome: "2ª Aula", tempo: "07:50 às 08:40", isIntervalo: false },
                 { nome: "3ª Aula", tempo: "08:40 às 09:30", isIntervalo: false },
-                { nome: "Intervalo", tempo: "09:30 às 09:50", isIntervalo: true },
-                { nome: "4ª Aula", tempo: "09:50 às 10:40", isIntervalo: false },
+                { nome: "Intervalo 1", tempo: "09:30 às 09:50", isIntervalo: true },
+                { nome: "4ª Aula", tempo: "09:30/09:50 às 10:40", isIntervalo: false }, // Aula Mista dependendo do intervalo
+                { nome: "Intervalo 2", tempo: "10:20 às 10:40", isIntervalo: true },
                 { nome: "5ª Aula", tempo: "10:40 às 11:30", isIntervalo: false },
                 { nome: "6ª Aula", tempo: "11:30 às 12:20", isIntervalo: false }
             ],
             "Tarde": [
                 { nome: "1ª Aula", tempo: "13:00 às 13:50", isIntervalo: false },
                 { nome: "2ª Aula", tempo: "13:50 às 14:40", isIntervalo: false },
-                { nome: "3ª Aula", tempo: "15:00 às 15:50", isIntervalo: false },
-                { nome: "Intervalo", tempo: "15:50 às 16:10", isIntervalo: true },
-                { nome: "4ª Aula", tempo: "16:10 às 17:00", isIntervalo: false },
-                { nome: "5ª Aula", tempo: "17:00 às 17:50", isIntervalo: false },
-                { nome: "6ª Aula", tempo: "17:50 às 18:40", isIntervalo: false }
+                { nome: "Intervalo 1", tempo: "14:40 às 15:00", isIntervalo: true },
+                { nome: "3ª Aula", tempo: "14:40/15:00 às 15:50", isIntervalo: false }, // Aula Mista dependendo do intervalo
+                { nome: "Intervalo 2", tempo: "15:30 às 15:50", isIntervalo: true },
+                { nome: "4ª Aula", tempo: "15:50 às 16:40", isIntervalo: false },
+                { nome: "5ª Aula", tempo: "16:40 às 17:30", isIntervalo: false },
+                { nome: "6ª Aula", tempo: "17:30 às 18:20", isIntervalo: false }
             ]
         };
 
@@ -304,11 +315,13 @@
             container.innerHTML = '';
 
             let optionsHTML = `<option value="">- Livre -</option>`;
+            optionsHTML += `<option value="☕ Intervalo" class="font-bold text-amber-600">☕ Intervalo</option>`;
+            optionsHTML += `<option value="ATPC (Escola)" class="font-bold text-indigo-600">📌 ATPC (Escola)</option>`;
+            optionsHTML += `<option value="Janela / Vago">Janela / Vago</option>`;
+            
             turmasDoProfessor.sort().forEach(t => {
                 optionsHTML += `<option value="${t}">${t}</option>`;
             });
-            optionsHTML += `<option value="ATPC (Escola)" class="font-bold text-indigo-600">📌 ATPC (Escola)</option>`;
-            optionsHTML += `<option value="Janela / Vago">Janela / Vago</option>`;
 
             ["Manhã", "Tarde"].forEach(turno => {
                 let html = `
@@ -328,35 +341,28 @@
                 `;
 
                 estruturaHorarios[turno].forEach((linha, idx) => {
-                    if (linha.isIntervalo) {
+                    let rowClass = linha.isIntervalo ? "bg-amber-50/20" : "bg-white";
+                    let tdClass = linha.isIntervalo ? "bg-amber-50/60" : "bg-slate-50";
+                    let textClass = linha.isIntervalo ? "text-amber-600" : "text-indigo-600";
+
+                    html += `<tr class="${rowClass}">
+                        <td class="p-2 font-semibold text-[10px] text-slate-700 border-r border-slate-100 ${tdClass}">
+                            ${linha.nome}<br><span class="text-[9px] ${textClass} font-medium">${linha.tempo}</span>
+                        </td>`;
+                    
+                    for(let i=0; i<5; i++) {
                         html += `
-                            <tr class="bg-slate-50/80">
-                                <td class="p-2 font-medium text-[10px] text-slate-500 border-r border-slate-100">
-                                    ${linha.nome}<br><span class="text-[9px]">${linha.tempo}</span>
-                                </td>
-                                <td colspan="5" class="p-2 text-slate-400 italic text-[10px]">Intervalo dos Alunos</td>
-                            </tr>
+                            <td class="p-1.5 border-r border-slate-100 align-middle">
+                                <div class="relative w-full">
+                                    <select class="interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700">
+                                        ${optionsHTML}
+                                    </select>
+                                    <div class="print-value hidden font-bold text-slate-800 text-[10px] md:text-xs"></div>
+                                </div>
+                            </td>
                         `;
-                    } else {
-                        html += `<tr>
-                            <td class="p-2 font-semibold text-[10px] text-slate-700 border-r border-slate-100 bg-slate-50">
-                                ${linha.nome}<br><span class="text-[9px] text-indigo-600 font-medium">${linha.tempo}</span>
-                            </td>`;
-                        
-                        for(let i=0; i<5; i++) {
-                            html += `
-                                <td class="p-1.5 border-r border-slate-100 align-middle">
-                                    <div class="relative w-full">
-                                        <select class="interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700">
-                                            ${optionsHTML}
-                                        </select>
-                                        <div class="print-value hidden font-bold text-slate-800 text-[10px] md:text-xs"></div>
-                                    </div>
-                                </td>
-                            `;
-                        }
-                        html += `</tr>`;
                     }
+                    html += `</tr>`;
                 });
 
                 html += `</tbody></table></div>`;
@@ -368,13 +374,17 @@
                     const printDiv = this.nextElementSibling;
                     printDiv.innerText = this.value;
                     
+                    // Colore a célula dependendo da seleção do usuário
                     if(this.value.includes("ATPC")) {
                         this.classList.add("bg-indigo-50", "text-indigo-700", "border-indigo-300");
                         printDiv.classList.add("text-indigo-700");
+                    } else if (this.value.includes("Intervalo")) {
+                        this.classList.add("bg-amber-50", "text-amber-700", "border-amber-300");
+                        printDiv.classList.add("text-amber-700");
                     } else if(this.value) {
                         this.classList.add("bg-emerald-50", "border-emerald-200");
-                        this.classList.remove("bg-indigo-50", "text-indigo-700", "border-indigo-300");
-                        printDiv.classList.remove("text-indigo-700");
+                        this.classList.remove("bg-indigo-50", "text-indigo-700", "border-indigo-300", "bg-amber-50", "text-amber-700", "border-amber-300");
+                        printDiv.classList.remove("text-indigo-700", "text-amber-700");
                     } else {
                         this.className = "interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700";
                     }
@@ -391,7 +401,6 @@
             }
         }
 
-        // Função mágica que prepara a folha pro PDF
         function prepararParaImpressao() {
             const area = document.getElementById('exportableArea');
             area.classList.add('pdf-compact'); // Encolhe as tabelas
@@ -422,11 +431,11 @@
             prepararParaImpressao();
 
             const opt = {
-                margin:       [0.2, 0.2, 0.2, 0.2], // Margens mais finas pra caber mais
+                margin:       [0.2, 0.2, 0.2, 0.2], // Margens super finas
                 filename:     `Horario_Individual_${prof.replace(/ /g, '_')}_2026.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' } // Formato Retrato (Em pé)
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' } // Forçado em pé (Portrait)
             };
             
             html2pdf().set(opt).from(element).save().then(() => {
@@ -455,21 +464,18 @@
                     let horarioTexto = cols[0].innerText.replace(/\n/g, ' '); 
                     linhaArr.push(horarioTexto);
 
-                    if(cols.length === 2) {
-                        linhaArr.push("INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO");
-                    } else {
-                        for(let i=1; i<=5; i++) {
-                            let select = cols[i].querySelector('select');
-                            linhaArr.push(select && select.value ? select.value : "-");
-                        }
+                    for(let i=1; i<=5; i++) {
+                        let select = cols[i].querySelector('select');
+                        linhaArr.push(select && select.value ? select.value : "-");
                     }
+                    
                     matriz.push(linhaArr);
                 });
                 matriz.push([]); 
             });
 
             let ws = XLSX.utils.aoa_to_sheet(matriz);
-            ws['!cols'] = [{wch: 20}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}];
+            ws['!cols'] = [{wch: 22}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}];
 
             let wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Horário Individual");
