@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisador de Atribuição e ATPC - 2026</title>
-    <!-- Tailwind CSS -->
+    <title>Montador de Horário Individual - SEDUC</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
+        
+        /* Esconde elementos na hora de gerar PDF via CSS tradicional (fallback) */
         @media print {
             .no-print { display: none !important; }
             .print-padding { padding: 0 !important; }
@@ -29,114 +28,84 @@
             <div>
                 <div class="flex items-center gap-2 mb-1">
                     <span class="bg-blue-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-blue-50">Seduc SP — 2026</span>
-                    <span class="bg-emerald-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-emerald-50">Leitura Direta Ativada</span>
+                    <span class="bg-amber-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-amber-950">Montador Interativo</span>
                 </div>
-                <h1 class="text-2xl font-bold tracking-tight">Analisador de Atribuição & Calculador de ATPC</h1>
-                <p class="text-indigo-100 text-xs mt-0.5">Suba o arquivo original da SEDUC. O sistema limpa o lixo e organiza tudo automaticamente.</p>
+                <h1 class="text-2xl font-bold tracking-tight">Atribuição & Montador de Horário Individual</h1>
+                <p class="text-indigo-100 text-xs mt-0.5">Leia a base da SEDUC e aloje as aulas e ATPCs na grade de cada docente.</p>
             </div>
         </header>
 
-        <!-- Painel de Upload e Filtro -->
+        <!-- Upload e Controles -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 no-print">
-            <!-- Card Upload -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Arquivo Original</h3>
-                    <p class="text-xs text-slate-500 mb-3">Pode arrastar ou selecionar o arquivo CSV/Excel do jeito que veio do sistema (sem editar nada!).</p>
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Base de Atribuição (CSV/Excel)</h3>
                 </div>
                 <div class="relative border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 rounded-xl p-3 text-center cursor-pointer transition-colors group">
                     <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
                     <span class="text-2xl block mb-1 group-hover:scale-110 transition-transform">📁</span>
-                    <p class="text-xs font-semibold text-slate-700" id="uploadStatus">Selecionar arquivo da SEDUC</p>
+                    <p class="text-xs font-semibold text-slate-700" id="uploadStatus">Selecionar arquivo CSV da SEDUC</p>
                 </div>
             </div>
 
-            <!-- Card Filtros -->
             <div class="lg:col-span-2 bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Filtros de Busca</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Filtrar por Professor(a)</label>
-                        <select id="filterProfessor" onchange="renderizarDashboard()" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-indigo-500">
-                            <option value="Todos">Todos os Professores</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-medium text-slate-500 mb-1">Filtrar por Turma/Série</label>
-                        <select id="filterSerie" onchange="renderizarDashboard()" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium outline-none focus:border-indigo-500">
-                            <option value="Todos">Todas as Turmas</option>
-                        </select>
-                    </div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Selecione o Docente para Montar a Grade</h3>
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-500 mb-1">Professor(a)</label>
+                    <select id="filterProfessor" onchange="renderizarDashboard()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm font-semibold outline-none focus:border-indigo-500 transition-colors">
+                        <option value="Todos">-- Carregue o arquivo primeiro --</option>
+                    </select>
                 </div>
             </div>
         </div>
 
-        <!-- Botões de Exportação -->
-        <div id="actionButtons" class="hidden flex items-center justify-end gap-2 bg-white p-3 rounded-xl shadow-sm border border-slate-200 no-print">
-            <button onclick="exportarPDF()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs py-2 px-4 rounded-lg transition-colors">
-                📄 Salvar Relatório (PDF)
-            </button>
-            <button onclick="exportarExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold text-xs py-2 px-4 rounded-lg transition-colors">
-                🟢 Exportar Planilha Limpa (Excel)
-            </button>
-        </div>
-
-        <!-- Área de Dados Analisados -->
         <main id="exportableArea" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[250px] flex flex-col justify-center">
             
-            <!-- Tela Inicial Neutra -->
             <div id="emptyState" class="text-center py-8 space-y-2 no-print">
                 <span class="text-4xl">⚡</span>
-                <h3 class="text-sm font-bold text-slate-700">Aguardando dados...</h3>
-                <p class="text-slate-400 text-xs max-w-sm mx-auto">Assim que você carregar o arquivo, as colunas extras serão removidas e o cálculo de ATPC consolidado aparecerá aqui.</p>
+                <h3 class="text-sm font-bold text-slate-700">Aguardando docente...</h3>
+                <p class="text-slate-400 text-xs max-w-sm mx-auto">Selecione um professor para visualizar sua carga horária e montar o horário individual na grade.</p>
             </div>
 
-            <!-- Dashboard de Resultados -->
             <div id="dashboardContent" class="hidden space-y-6">
-                <div class="border-b pb-3 border-slate-100 text-center md:text-left">
-                    <h2 class="text-lg font-bold text-slate-800">Relatório Consolidado de Atribuição de Aulas</h2>
-                    <p class="text-xs text-slate-400">Ano Letivo 2026 — Resolução SEDUC 105/2024</p>
-                </div>
-
-                <!-- Tabela de Resumo por Professor e ATPC -->
-                <div>
-                    <h3 class="text-xs font-bold text-indigo-600 uppercase tracking-wider mb-2">Resumo de Carga Horária e ATPC devidas</h3>
-                    <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-                        <table class="w-full text-xs text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-800 text-white font-semibold uppercase tracking-wider text-[10px]">
-                                    <th class="p-3">Docente</th>
-                                    <th class="p-3 text-center">Total de Aulas Atribuídas</th>
-                                    <th class="p-3 text-center bg-indigo-900">ATPC Coletivas Obrigatórias</th>
-                                    <th class="p-3">Disciplinas / Componentes</th>
-                                </tr>
-                            </thead>
-                            <tbody id="corpoTabelaResumo" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Gerado via JS -->
-                            </tbody>
-                        </table>
+                <!-- Cabeçalho de Impressão -->
+                <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
+                    <div>
+                        <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
+                        <p class="text-xs text-slate-500 mt-1">Horário de Trabalho Individual — Ano Letivo 2026</p>
+                    </div>
+                    <div class="text-right">
+                        <div id="printAulas" class="text-sm font-bold text-slate-700">Aulas: 0</div>
+                        <div id="printATPC" class="text-sm font-bold text-indigo-600">ATPC: 0</div>
                     </div>
                 </div>
 
-                <!-- Tabela Detalhada (Informações Importantes) -->
+                <!-- Montador Interativo de Grade -->
                 <div>
-                    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Listagem Detalhada das Atribuições</h3>
-                    <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-                        <table id="tabelaDetalhes" class="w-full text-xs text-left border-collapse">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-600 font-bold uppercase border-b border-slate-200 text-[10px]">
-                                    <th class="p-3">Professor(a)</th>
-                                    <th class="p-3">Série / Turma</th>
-                                    <th class="p-3 text-center">Nº Aulas</th>
-                                    <th class="p-3">Matéria / Componente</th>
-                                    <th class="p-3">Tipo de Ensino</th>
-                                </tr>
-                            </thead>
-                            <tbody id="corpoTabelaDetalhes" class="divide-y divide-slate-100 text-slate-600">
-                                <!-- Gerado via JS -->
-                            </tbody>
-                        </table>
+                    <div class="flex justify-between items-center mb-3 no-print">
+                        <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Montar Grade Semanal</h3>
+                        <div class="flex gap-2">
+                            <button onclick="limparGrade()" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-semibold transition-colors">Limpar Grade</button>
+                            <button onclick="exportarGradePDF()" class="text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-semibold border border-rose-200 transition-colors">📄 Baixar PDF</button>
+                            <button onclick="exportarGradeExcel()" class="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200 transition-colors">🟢 Baixar Excel</button>
+                        </div>
                     </div>
+
+                    <div id="gradeContainer" class="space-y-6">
+                        <!-- Gerado via JS (Tabelas Manhã e Tarde) -->
+                    </div>
+                </div>
+                
+                <!-- Lista de Aulas Atribuídas como Referência na Impressão -->
+                <div class="mt-8 pt-4 border-t border-slate-100">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência)</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase">
+                        <!-- Gerado via JS -->
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center text-[10px] text-slate-400 font-medium">
+                    <p>Ciente do(a) Docente: ___________________________________________________ Data: ___/___/2026</p>
                 </div>
             </div>
         </main>
@@ -144,8 +113,30 @@
 
     <script>
         let dadosOriginais = [];
+        let turmasDoProfessor = [];
 
-        // Regra Oficial de ATPC 2026
+        const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+        const estruturaHorarios = {
+            "Manhã": [
+                { nome: "1ª Aula", tempo: "07:00 às 07:50", isIntervalo: false },
+                { nome: "2ª Aula", tempo: "07:50 às 08:40", isIntervalo: false },
+                { nome: "3ª Aula", tempo: "08:40 às 09:30", isIntervalo: false },
+                { nome: "Intervalo", tempo: "09:30 às 09:50", isIntervalo: true },
+                { nome: "4ª Aula", tempo: "09:50 às 10:40", isIntervalo: false },
+                { nome: "5ª Aula", tempo: "10:40 às 11:30", isIntervalo: false },
+                { nome: "6ª Aula", tempo: "11:30 às 12:20", isIntervalo: false }
+            ],
+            "Tarde": [
+                { nome: "1ª Aula", tempo: "13:00 às 13:50", isIntervalo: false },
+                { nome: "2ª Aula", tempo: "13:50 às 14:40", isIntervalo: false },
+                { nome: "3ª Aula", tempo: "15:00 às 15:50", isIntervalo: false },
+                { nome: "Intervalo", tempo: "15:50 às 16:10", isIntervalo: true },
+                { nome: "4ª Aula", tempo: "16:10 às 17:00", isIntervalo: false },
+                { nome: "5ª Aula", tempo: "17:00 às 17:50", isIntervalo: false },
+                { nome: "6ª Aula", tempo: "17:50 às 18:40", isIntervalo: false }
+            ]
+        };
+
         function calcularATPC(qtdAulas) {
             if(qtdAulas <= 4) return 1;
             if(qtdAulas <= 15) return 2;
@@ -168,27 +159,21 @@
                     const workbook = XLSX.read(data, {type: 'array'});
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     
-                    // SOLUÇÃO DO SEU PROBLEMA: {range: 2} pula automaticamente as 2 primeiras linhas inúteis da SEDUC!
                     const linhasBrutas = XLSX.utils.sheet_to_json(sheet, {range: 2});
                     
-                    // Limpa e padroniza os dados focando apenas no IMPORTANTE
-                    dadosOriginais = linhasBrutas.map(row => {
-                        return {
-                            Professor: row['Professor'] ? row['Professor'].trim() : 'Não Informado',
-                            Serie: row['Turma'] ? row['Turma'].trim() : 'Não Informado',
-                            Aulas: row['Qtde. Aulas'] ? parseInt(row['Qtde. Aulas']) : 0,
-                            Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado',
-                            Ensino: row['Tipo de Ensino'] ? row['Tipo de Ensino'].trim() : 'Regular'
-                        };
-                    }).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
+                    dadosOriginais = linhasBrutas.map(row => ({
+                        Professor: row['Professor'] ? row['Professor'].trim() : 'Não Informado',
+                        Serie: row['Turma'] ? row['Turma'].trim() : 'Não Informado',
+                        Aulas: row['Qtde. Aulas'] ? parseInt(row['Qtde. Aulas']) : 0,
+                        Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado'
+                    })).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
 
-                    document.getElementById('uploadStatus').innerHTML = `✅ Carregado com sucesso!`;
+                    document.getElementById('uploadStatus').innerHTML = `✅ ${file.name} Carregado!`;
                     document.getElementById('uploadStatus').classList.add('text-emerald-600');
                     
                     popularFiltrosOpcoes();
-                    renderizarDashboard();
                 } catch (err) {
-                    alert('Erro ao ler as colunas do arquivo. Verifique se escolheu o arquivo correto.');
+                    alert('Erro ao ler as colunas do arquivo.');
                     document.getElementById('uploadStatus').innerHTML = `❌ Erro de Leitura`;
                 }
             };
@@ -197,125 +182,240 @@
 
         function popularFiltrosOpcoes() {
             const professores = new Set();
-            const series = new Set();
-
-            dadosOriginais.forEach(i => {
-                professores.add(i.Professor);
-                series.add(i.Serie);
-            });
+            dadosOriginais.forEach(i => professores.add(i.Professor));
 
             const selProf = document.getElementById('filterProfessor');
-            selProf.innerHTML = '<option value="Todos">Todos os Professores</option>';
+            selProf.innerHTML = '<option value="Todos">-- Selecione um Docente --</option>';
             Array.from(professores).sort().forEach(p => {
                 selProf.innerHTML += `<option value="${p}">${p}</option>`;
-            });
-
-            const selSerie = document.getElementById('filterSerie');
-            selSerie.innerHTML = '<option value="Todos">Todas as Turmas</option>';
-            Array.from(series).sort().forEach(s => {
-                selSerie.innerHTML += `<option value="${s}">${s}</option>`;
             });
         }
 
         function renderizarDashboard() {
-            if(dadosOriginais.length === 0) return;
+            const prof = document.getElementById('filterProfessor').value;
+            if(prof === "Todos") {
+                document.getElementById('emptyState').classList.remove('hidden');
+                document.getElementById('dashboardContent').classList.add('hidden');
+                return;
+            }
 
             document.getElementById('emptyState').classList.add('hidden');
             document.getElementById('dashboardContent').classList.remove('hidden');
-            document.getElementById('actionButtons').classList.remove('hidden');
+            
+            // Filtra aulas do professor
+            const aulasProf = dadosOriginais.filter(i => i.Professor === prof);
+            
+            // Resumo Superior
+            let totalAulas = 0;
+            turmasDoProfessor = []; // Limpa e popula opções para os selects
+            
+            const listaAtribuicaoBase = document.getElementById('listaAtribuicaoBase');
+            listaAtribuicaoBase.innerHTML = '';
 
-            const profFiltro = document.getElementById('filterProfessor').value;
-            const serieFiltro = document.getElementById('filterSerie').value;
-
-            // Filtragem inteligente
-            let filtrados = dadosOriginais.filter(i => {
-                return (profFiltro === "Todos" || i.Professor === profFiltro) &&
-                       (serieFiltro === "Todos" || i.Serie === serieFiltro);
-            });
-
-            // 1. GERAR TABELA DE RESUMO (Agrupado por Professor para calcular carga total e ATPC)
-            const resumoProfessores = {};
-            dadosOriginais.forEach(i => {
-                if(!resumoProfessores[i.Professor]) {
-                    resumoProfessores[i.Professor] = { aulas: 0, materias: new Set() };
+            aulasProf.forEach(a => {
+                totalAulas += a.Aulas;
+                const optName = `${a.Serie} - ${a.Materia}`;
+                if(!turmasDoProfessor.includes(optName)) {
+                    turmasDoProfessor.push(optName);
                 }
-                resumoProfessores[i.Professor].aulas += i.Aulas;
-                resumoProfessores[i.Professor].materias.add(i.Materia);
+                // Adiciona o cardzinho de referência no rodapé
+                listaAtribuicaoBase.innerHTML += `
+                    <div class="bg-slate-50 border border-slate-200 rounded p-2 text-center text-[10px]">
+                        <span class="font-bold text-slate-700 block">${a.Serie}</span>
+                        <span class="text-indigo-600 font-semibold block truncate">${a.Materia}</span>
+                        <span class="text-slate-500">${a.Aulas} Aulas</span>
+                    </div>
+                `;
             });
 
-            const corpoResumo = document.getElementById('corpoTabelaResumo');
-            corpoResumo.innerHTML = '';
+            document.getElementById('printNomeProf').innerText = prof;
+            document.getElementById('printAulas').innerText = `Carga Atribuída: ${totalAulas} Aulas`;
+            document.getElementById('printATPC').innerText = `ATPCs Devidas: ${calcularATPC(totalAulas)}`;
 
-            Object.keys(resumoProfessores).sort().forEach(p => {
-                // Se estiver filtrando um professor específico, pula os outros no resumo
-                if(profFiltro !== "Todos" && p !== profFiltro) return;
+            // Gera a Grade Interativa
+            gerarTabelasInterativas();
+        }
 
-                const totalAulas = resumoProfessores[p].aulas;
-                const atpc = calcularATPC(totalAulas);
-                const mats = Array.from(resumoProfessores[p].materias).join(', ');
+        function gerarTabelasInterativas() {
+            const container = document.getElementById('gradeContainer');
+            container.innerHTML = '';
 
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-3 font-semibold text-slate-800">${p}</td>
-                    <td class="p-3 text-center font-bold text-slate-600">${totalAulas} Aulas</td>
-                    <td class="p-3 text-center font-extrabold text-indigo-700 bg-indigo-50/50">${atpc} ATPC</td>
-                    <td class="p-3 text-slate-500 max-w-xs truncate" title="${mats}">${mats}</td>
+            // Options do Select Baseado nas turmas do professor + ATPC
+            let optionsHTML = `<option value="">- Livre -</option>`;
+            turmasDoProfessor.sort().forEach(t => {
+                optionsHTML += `<option value="${t}">${t}</option>`;
+            });
+            // Adiciona opções de ATPC e Reuniões para montagem completa
+            optionsHTML += `<option value="ATPC (Escola)" class="font-bold text-indigo-600">📌 ATPC (Escola)</option>`;
+            optionsHTML += `<option value="Janela / Vago">Janela / Vago</option>`;
+
+            ["Manhã", "Tarde"].forEach(turno => {
+                let html = `
+                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <table class="w-full text-xs text-center border-collapse" id="tabela-${turno}">
+                        <thead>
+                            <tr class="bg-slate-800 text-white font-semibold text-[10px] uppercase tracking-wider">
+                                <th class="p-2 w-[12%]">${turno}</th>
+                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Segunda</th>
+                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Terça</th>
+                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Quarta</th>
+                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Quinta</th>
+                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Sexta</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
                 `;
-                corpoResumo.appendChild(tr);
+
+                estruturaHorarios[turno].forEach((linha, idx) => {
+                    if (linha.isIntervalo) {
+                        html += `
+                            <tr class="bg-slate-50/80">
+                                <td class="p-2 font-medium text-[10px] text-slate-500 border-r border-slate-100">
+                                    ${linha.nome}<br><span class="text-[9px]">${linha.tempo}</span>
+                                </td>
+                                <td colspan="5" class="p-2 text-slate-400 italic text-[10px]">Intervalo dos Alunos</td>
+                            </tr>
+                        `;
+                    } else {
+                        html += `<tr>
+                            <td class="p-2 font-semibold text-[10px] text-slate-700 border-r border-slate-100 bg-slate-50">
+                                ${linha.nome}<br><span class="text-[9px] text-indigo-600 font-medium">${linha.tempo}</span>
+                            </td>`;
+                        
+                        for(let i=0; i<5; i++) {
+                            html += `
+                                <td class="p-1.5 border-r border-slate-100 align-middle">
+                                    <div class="relative w-full">
+                                        <select class="interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700">
+                                            ${optionsHTML}
+                                        </select>
+                                        <div class="print-value hidden font-bold text-slate-800 text-[10px] md:text-xs"></div>
+                                    </div>
+                                </td>
+                            `;
+                        }
+                        html += `</tr>`;
+                    }
+                });
+
+                html += `</tbody></table></div>`;
+                container.innerHTML += html;
             });
 
-            // 2. GERAR TABELA DETALHADA
-            const corpoDetalhes = document.getElementById('corpoTabelaDetalhes');
-            corpoDetalhes.innerHTML = '';
-
-            filtrados.forEach(i => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition-colors";
-                tr.innerHTML = `
-                    <td class="p-3">${i.Professor}</td>
-                    <td class="p-3 font-medium text-slate-700">${i.Serie}</td>
-                    <td class="p-3 text-center font-bold">${i.Aulas}</td>
-                    <td class="p-3 text-indigo-900 font-medium">${i.Materia}</td>
-                    <td class="p-3 text-slate-400 text-[11px]">${i.Ensino}</td>
-                `;
-                corpoDetalhes.appendChild(tr);
+            // Listeners para sincronizar o select com a div de impressão
+            document.querySelectorAll('.interactive-select').forEach(sel => {
+                sel.addEventListener('change', function() {
+                    const printDiv = this.nextElementSibling;
+                    printDiv.innerText = this.value;
+                    
+                    // Highlights visuais
+                    if(this.value.includes("ATPC")) {
+                        this.classList.add("bg-indigo-50", "text-indigo-700", "border-indigo-300");
+                        printDiv.classList.add("text-indigo-700");
+                    } else if(this.value) {
+                        this.classList.add("bg-emerald-50", "border-emerald-200");
+                        this.classList.remove("bg-indigo-50", "text-indigo-700", "border-indigo-300");
+                        printDiv.classList.remove("text-indigo-700");
+                    } else {
+                        this.className = "interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700";
+                    }
+                });
             });
         }
 
-        function exportarPDF() {
+        function limparGrade() {
+            if(confirm("Tem certeza que deseja apagar toda a grade montada?")) {
+                document.querySelectorAll('.interactive-select').forEach(sel => {
+                    sel.value = "";
+                    sel.dispatchEvent(new Event('change'));
+                });
+            }
+        }
+
+        function prepararParaImpressao() {
+            // Esconde os Selects (HTML nativo) e mostra as Divs em texto puro
+            document.querySelectorAll('.interactive-select').forEach(sel => {
+                const printDiv = sel.nextElementSibling;
+                // Se estiver vazio, coloca um traço para ficar bonito no PDF
+                printDiv.innerText = sel.value || "-";
+                sel.classList.add('hidden');
+                printDiv.classList.remove('hidden');
+            });
+        }
+
+        function restaurarAposImpressao() {
+            document.querySelectorAll('.interactive-select').forEach(sel => {
+                const printDiv = sel.nextElementSibling;
+                sel.classList.remove('hidden');
+                printDiv.classList.add('hidden');
+            });
+        }
+
+        function exportarGradePDF() {
+            const prof = document.getElementById('printNomeProf').innerText;
             const element = document.getElementById('exportableArea');
+            
+            prepararParaImpressao();
+
             const opt = {
-                margin:       [0.5, 0.5, 0.5, 0.5],
-                filename:     'Relatorio-Atribuicao-e-ATPC-2026.pdf',
+                margin:       [0.4, 0.4, 0.4, 0.4],
+                filename:     `Horario_Individual_${prof.replace(/ /g, '_')}_2026.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
-            html2pdf().set(opt).from(element).save();
+            
+            html2pdf().set(opt).from(element).save().then(() => {
+                restaurarAposImpressao();
+            });
         }
 
-        function exportarExcel() {
-            // Cria planilha gerencial limpa direto dos dados
-            const profFiltro = document.getElementById('filterProfessor').value;
-            const matriz = [
-                ["RELATÓRIO GERENCIAL DE ATRIBUIÇÃO E ATPC Letivo 2026"],
-                [],
-                ["Professor", "Série / Turma", "Quantidade de Aulas", "Matéria / Componente", "Tipo de Ensino"]
+        function exportarGradeExcel() {
+            const prof = document.getElementById('printNomeProf').innerText;
+            let matriz = [
+                [`HORÁRIO INDIVIDUAL - ${prof}`],
+                [`Ano Letivo: 2026`],
+                []
             ];
 
-            dadosOriginais.forEach(i => {
-                if(profFiltro === "Todos" || i.Professor === profFiltro) {
-                    matriz.push([i.Professor, i.Serie, i.Aulas, i.Materia, i.Ensino]);
-                }
+            ["Manhã", "Tarde"].forEach(turno => {
+                matriz.push([turno.toUpperCase(), "Segunda", "Terça", "Quarta", "Quinta", "Sexta"]);
+                
+                let tbody = document.querySelector(`#tabela-${turno} tbody`);
+                let rows = tbody.querySelectorAll('tr');
+                
+                rows.forEach(tr => {
+                    let cols = tr.querySelectorAll('td');
+                    let linhaArr = [];
+                    
+                    // Coluna de Horário
+                    let horarioTexto = cols[0].innerText.replace(/
+/g, ' '); 
+                    linhaArr.push(horarioTexto);
+
+                    if(cols.length === 2) {
+                        // Linha de intervalo
+                        linhaArr.push("INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO");
+                    } else {
+                        // Células interativas
+                        for(let i=1; i<=5; i++) {
+                            let select = cols[i].querySelector('select');
+                            linhaArr.push(select && select.value ? select.value : "-");
+                        }
+                    }
+                    matriz.push(linhaArr);
+                });
+                matriz.push([]); // Espaço entre turnos
             });
 
             let ws = XLSX.utils.aoa_to_sheet(matriz);
-            let wb = XLSX.utils.book_new();
             
-            ws['!cols'] = [{wch: 35}, {wch: 22}, {wch: 18}, {wch: 25}, {wch: 25}];
-            XLSX.utils.book_append_sheet(wb, ws, "Atribuição Limpa 2026");
-            XLSX.writeFile(wb, "Atribuicao-Limpa-2026.xlsx");
+            // Estilização simples das larguras no Excel
+            ws['!cols'] = [{wch: 20}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}];
+
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Horário Individual");
+            XLSX.writeFile(wb, `Horario_${prof.replace(/ /g, '_')}.xlsx`);
         }
     </script>
 </body>
