@@ -4,128 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de Horários Escolares - 2026</title>
-    <!-- Tailwind CSS para Estilização rápida -->
-    <script src="[cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <!-- SheetJS (Lê e Exporta Excel) -->
-    <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js)"></script>
-    <!-- html2pdf (Exporta para PDF) -->
-    <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
+    <!-- Tailwind CSS para Estilização de Alto Nível -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS (Lê e Exporta Excel com Precisão) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- html2pdf (Exporta para PDF de forma polida) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
-        table, th, td { border: 1px solid #e5e7eb; }
-        .print-break { page-break-inside: avoid; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .timetable-cell {
+            transition: all 0.2s ease;
+        }
+        .timetable-cell:hover {
+            background-color: #f1f5f9;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            .print-padding { padding: 0 !important; }
+            body { background: white; }
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6 font-sans">
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased p-4 md:p-8">
 
-    <div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-lg">
-        <h1 class="text-3xl font-bold text-blue-700 mb-6 border-b pb-4">Gerador de Horários - Atribuição de Aulas</h1>
-
-        <!-- File Upload -->
-        <div class="mb-6 bg-blue-50 p-4 rounded-md border border-blue-200">
-            <label class="block font-semibold mb-2">1. Carregue o arquivo Excel ou CSV de Atribuição de Aulas:</label>
-            <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" class="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold
-              file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
-        </div>
-
-        <!-- Filters -->
-        <h2 class="text-xl font-bold mt-8 mb-4">2. Filtros</h2>
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <div class="max-w-7xl mx-auto space-y-8 print-padding">
+        
+        <!-- Header Principal -->
+        <header class="bg-gradient-to-r from-indigo-700 via-indigo-600 to-blue-600 text-white p-6 md:p-8 rounded-2xl shadow-md no-print flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-                <label class="text-xs font-semibold uppercase text-gray-500">Professor</label>
-                <select id="filterProfessor" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Todos">Todos</option>
-                </select>
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="bg-indigo-500 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider text-indigo-100">Ano Letivo 2026</span>
+                    <span class="bg-emerald-500 text-xs font-semibold px-2.5 py-1 rounded-full uppercase tracking-wider text-emerald-100">Seduc Digital</span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Gerador de Horários & Atribuição de Aulas</h1>
+                <p class="text-indigo-100 text-sm mt-1">Gere grades de horários completas, valide as diretrizes de ATPC e exporte relatórios limpos.</p>
             </div>
-            <div>
-                <label class="text-xs font-semibold uppercase text-gray-500">Período</label>
-                <select id="filterPeriodo" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Todos">Todos</option>
-                    <option value="Manhã">Manhã</option>
-                    <option value="Tarde">Tarde</option>
-                </select>
+            <div class="flex items-center gap-3 bg-white/10 p-3 rounded-xl backdrop-blur-sm self-start md:self-auto text-xs md:text-sm">
+                <div class="p-2 bg-white/20 rounded-lg">
+                    📅
+                </div>
+                <div>
+                    <p class="font-medium">Resolução SEDUC 105/2024</p>
+                    <p class="text-indigo-200 text-xs">Atualizado com as diretrizes de 2026</p>
+                </div>
             </div>
-            <div>
-                <label class="text-xs font-semibold uppercase text-gray-500">Série/Turma</label>
-                <select id="filterSerie" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Todos">Todos</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs font-semibold uppercase text-gray-500">Matéria</label>
-                <select id="filterMateria" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="Todos">Todos</option>
-                </select>
-            </div>
-        </div>
+        </header>
 
-        <!-- Botões de Ação -->
-        <div class="flex gap-4 mb-8">
-            <button onclick="gerarHorario()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-blue-700">Gerar Grade</button>
-            <button onclick="exportarPDF()" class="bg-red-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-red-700">Baixar PDF</button>
-            <button onclick="exportarExcel()" class="bg-green-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-green-700">Baixar Excel</button>
-        </div>
-
-        <!-- Área de Exportação e Visualização -->
-        <div id="exportableArea" class="bg-white print-break">
-            <!-- Info ATPC -->
-            <div id="atpcPanel" class="hidden mb-4 p-4 border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 rounded-r-md">
-                <h3 class="font-bold">Análise Organizacional (Diretrizes ATPC 2026):</h3>
-                <p id="atpcText" class="text-sm mt-1"></p>
-                <p class="text-xs text-gray-600 mt-2">*Cálculo referencial p/ salas regulares (Resolução SEDUC 105/2024 e Documento Orientador 2026). Consulte variações para Projetos (PEI, VOAR, etc).</p>
-            </div>
-
-            <div id="gradeTitle" class="text-xl font-bold mb-4 text-center text-gray-800"></div>
+        <!-- Seção de Upload e Controles -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 no-print">
             
+            <!-- Upload de Arquivos Card -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">1. Dados de Entrada</h3>
+                    <p class="text-xs text-slate-400 mb-4">Carregue a planilha Excel ou CSV contendo as colunas: <strong>Professor, Serie, Materia, Periodo, Dia, Aula</strong>.</p>
+                </div>
+                <div class="relative border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 hover:bg-indigo-50/30 rounded-xl p-4 transition-colors group cursor-pointer">
+                    <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                    <div class="flex flex-col items-center text-center py-4">
+                        <span class="text-3xl mb-2 group-hover:scale-110 transition-transform">📊</span>
+                        <p class="text-sm font-medium text-slate-700" id="uploadStatus">Selecionar arquivo Excel / CSV</p>
+                        <p class="text-xs text-slate-400 mt-1">ou arraste e solte o arquivo aqui</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Card -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">2. Filtros e Customização da Grade</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Professor(a)</label>
+                        <select id="filterProfessor" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium transition-all">
+                            <option value="Todos">Todos os Professores</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Período / Turno</label>
+                        <select id="filterPeriodo" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium transition-all">
+                            <option value="Todos">Todos os Turnos</option>
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Série / Turma</label>
+                        <select id="filterSerie" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium transition-all">
+                            <option value="Todos">Todas as Séries</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-500 mb-1.5">Matéria / Componente Curricular</label>
+                        <select id="filterMateria" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 font-medium transition-all">
+                            <option value="Todos">Todas as Matérias</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botões de Ações Rápidas -->
+        <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print">
+            <div class="flex items-center gap-2">
+                <button onclick="gerarHorario()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm py-2.5 px-6 rounded-xl shadow-sm transition-all flex items-center gap-2">
+                    🔄 Gerar Grade de Horários
+                </button>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="exportarPDF()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-sm py-2.5 px-4 rounded-xl transition-all flex items-center gap-2">
+                    📄 Baixar PDF
+                </button>
+                <button onclick="exportarExcel()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-semibold text-sm py-2.5 px-4 rounded-xl transition-all flex items-center gap-2">
+                    Excel Perfeito 🟢
+                </button>
+            </div>
+        </div>
+
+        <!-- Alertas e Análise de ATPC -->
+        <div id="atpcPanel" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-5 text-amber-900 shadow-sm no-print">
+            <div class="flex items-start gap-3">
+                <span class="text-xl mt-0.5">💡</span>
+                <div class="flex-1">
+                    <h3 class="font-bold text-sm text-amber-900 uppercase tracking-wide">Análise Organizacional de Carga Horária (Diretrizes ATPC 2026):</h3>
+                    <p id="atpcText" class="text-sm mt-1 text-amber-800 font-medium"></p>
+                    <p class="text-xs text-amber-600 mt-2 italic font-normal border-t border-amber-200/60 pt-2">
+                        *Cálculo referencial p/ salas regulares conforme Resolução SEDUC 105/2024 e Documento Orientador 2026. Atividades complementares coletivas devem ser planejadas na unidade de ensino.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área de Visualização e Impressão da Grade -->
+        <main id="exportableArea" class="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-200 min-h-[300px] flex flex-col justify-center">
+            
+            <!-- Estado Inicial: Sem dados -->
+            <div id="emptyState" class="text-center py-12 flex flex-col items-center justify-center space-y-3 no-print">
+                <span class="text-5xl opacity-40">📭</span>
+                <h3 class="text-lg font-semibold text-slate-700">Nenhuma grade gerada</h3>
+                <p class="text-slate-400 text-sm max-w-md">Faça o upload do seu arquivo Excel/CSV acima e clique em "Gerar Grade de Horários" para processar a matriz escolar.</p>
+            </div>
+
+            <!-- Cabeçalho Dinâmico da Grade (Apenas visível ao gerar dados) -->
+            <div id="gradeHeader" class="hidden mb-6 text-center border-b pb-4 border-slate-100">
+                <h2 id="gradeTitle" class="text-xl md:text-2xl font-bold text-slate-800">Grade de Horários Escolar</h2>
+                <p class="text-sm text-slate-400 mt-1">Escola Estadual / Ensino Regular — Ano Letivo 2026</p>
+            </div>
+
+            <!-- Tabela de Grade de Horários Principal -->
             <div class="overflow-x-auto">
-                <table id="horarioTabela" class="w-full text-sm text-center border-collapse hidden">
-                    <thead class="bg-gray-200 font-bold text-gray-700">
-                        <tr>
-                            <th class="p-3 w-1/6">Período / Aula</th>
-                            <th class="p-3 w-1/6">Segunda</th>
-                            <th class="p-3 w-1/6">Terça</th>
-                            <th class="p-3 w-1/6">Quarta</th>
-                            <th class="p-3 w-1/6">Quinta</th>
-                            <th class="p-3 w-1/6">Sexta</th>
+                <table id="horarioTabela" class="w-full text-sm text-left border-collapse hidden rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                    <thead>
+                        <tr class="bg-slate-800 text-white font-semibold text-xs tracking-wider uppercase">
+                            <th class="p-4 w-1/6 border border-slate-700 bg-slate-900 text-center">Horário / Aula</th>
+                            <th class="p-4 w-1/6 border border-slate-700 text-center">Segunda-Feira</th>
+                            <th class="p-4 w-1/6 border border-slate-700 text-center">Terça-Feira</th>
+                            <th class="p-4 w-1/6 border border-slate-700 text-center">Quarta-Feira</th>
+                            <th class="p-4 w-1/6 border border-slate-700 text-center">Quinta-Feira</th>
+                            <th class="p-4 w-1/6 border border-slate-700 text-center">Sexta-Feira</th>
                         </tr>
                     </thead>
-                    <tbody id="tabelaBody" class="text-gray-800">
-                        <!-- Gerado via JS -->
+                    <tbody id="tabelaBody" class="text-slate-700 divide-y divide-slate-200">
+                        <!-- Gerado Dinamicamente via JavaScript -->
                     </tbody>
                 </table>
             </div>
-        </div>
+        </main>
     </div>
 
+    <!-- Script de Lógica Avançada -->
     <script>
         let dadosAtribuicao = [];
         const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
         
-        // Estrutura de horários com os intervalos mistos da escola
+        // Estrutura oficial de horários e intervalos da instituição
         const estruturaHorarios = {
             "Manhã": [
-                { nome: "1ª Aula", tempo: "07:00 as 07:50", isIntervalo: false, aulaNum: 1 },
-                { nome: "2ª Aula", tempo: "07:50 as 08:40", isIntervalo: false, aulaNum: 2 },
-                { nome: "3ª Aula", tempo: "08:40 as 09:30", isIntervalo: false, aulaNum: 3 },
-                { nome: "Intervalo 1", tempo: "09:30 as 09:50", isIntervalo: true },
-                { nome: "4ª Aula", tempo: "09:50 as 10:40", isIntervalo: false, aulaNum: 4 },
-                { nome: "Intervalo 2", tempo: "10:20 as 10:40", isIntervalo: true },
-                { nome: "5ª Aula", tempo: "10:40 as 11:30", isIntervalo: false, aulaNum: 5 },
-                { nome: "6ª Aula", tempo: "11:30 as 12:20", isIntervalo: false, aulaNum: 6 }
+                { nome: "1ª Aula", tempo: "07:00 às 07:50", isIntervalo: false, aulaNum: 1 },
+                { nome: "2ª Aula", tempo: "07:50 às 08:40", isIntervalo: false, aulaNum: 2 },
+                { nome: "3ª Aula", tempo: "08:40 às 09:30", isIntervalo: false, aulaNum: 3 },
+                { nome: "Intervalo 1", tempo: "09:30 às 09:50", isIntervalo: true, nomeExibicao: "Intervalo Escolar (Manhã A)" },
+                { nome: "4ª Aula", tempo: "09:50 às 10:40", isIntervalo: false, aulaNum: 4 },
+                { nome: "Intervalo 2", tempo: "10:20 às 10:40", isIntervalo: true, nomeExibicao: "Intervalo Escolar (Manhã B)" },
+                { nome: "5ª Aula", tempo: "10:40 às 11:30", isIntervalo: false, aulaNum: 5 },
+                { nome: "6ª Aula", tempo: "11:30 às 12:20", isIntervalo: false, aulaNum: 6 }
             ],
             "Tarde": [
-                { nome: "1ª Aula", tempo: "13:00 as 13:50", isIntervalo: false, aulaNum: 1 },
-                { nome: "2ª Aula", tempo: "13:50 as 14:40", isIntervalo: false, aulaNum: 2 },
-                { nome: "Intervalo 1", tempo: "14:40 as 15:00", isIntervalo: true },
-                { nome: "3ª Aula", tempo: "15:00 as 15:50", isIntervalo: false, aulaNum: 3 },
-                { nome: "Intervalo 2", tempo: "15:30 as 15:50", isIntervalo: true },
-                { nome: "4ª Aula", tempo: "15:50 as 16:40", isIntervalo: false, aulaNum: 4 },
-                { nome: "5ª Aula", tempo: "16:40 as 17:30", isIntervalo: false, aulaNum: 5 },
-                { nome: "6ª Aula", tempo: "17:30 as 18:20", isIntervalo: false, aulaNum: 6 }
+                { nome: "1ª Aula", tempo: "13:00 às 13:50", isIntervalo: false, aulaNum: 1 },
+                { nome: "2ª Aula", tempo: "13:50 às 14:40", isIntervalo: false, aulaNum: 2 },
+                { nome: "Intervalo 1", tempo: "14:40 às 15:00", isIntervalo: true, nomeExibicao: "Intervalo Escolar (Tarde A)" },
+                { nome: "3ª Aula", tempo: "15:00 às 15:50", isIntervalo: false, aulaNum: 3 },
+                { nome: "Intervalo 2", tempo: "15:30 às 15:50", isIntervalo: true, nomeExibicao: "Intervalo Escolar (Tarde B)" },
+                { nome: "4ª Aula", tempo: "15:50 às 16:40", isIntervalo: false, aulaNum: 4 },
+                { nome: "5ª Aula", tempo: "16:40 às 17:30", isIntervalo: false, aulaNum: 5 },
+                { nome: "6ª Aula", tempo: "17:30 às 18:20", isIntervalo: false, aulaNum: 6 }
             ]
         };
 
-        // Regra de ATPCs baseada no anexo I do documento orientador da Seduc 2026
+        // Regra de ATPCs baseada nas Diretrizes Gerais SEDUC 2026
         function calcularATPC(qtdAulas) {
             if(qtdAulas <= 4) return 1;
             if(qtdAulas <= 15) return 2;
@@ -135,25 +215,42 @@
             return 0;
         }
 
+        // Listener de Carregamento de Arquivos
         document.getElementById('fileUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('uploadStatus').innerHTML = `🔄 Carregando ${file.name}...`;
             const reader = new FileReader();
 
             reader.onload = function(evt) {
-                const data = new Uint8Array(evt.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                
-                // Normaliza o cabelhaço para garantir que remove os espaços
-                dadosAtribuicao = XLSX.utils.sheet_to_json(sheet).map(row => {
-                    let newRow = {};
-                    for (let key in row) {
-                        newRow[key.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "")] = row[key]; 
-                    }
-                    return newRow;
-                });
-                
-                popularFiltros();
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // Converte e normaliza chaves retirando espaços e acentos para prevenir erros humanos
+                    dadosAtribuicao = XLSX.utils.sheet_to_json(sheet).map(row => {
+                        let newRow = {};
+                        for (let key in row) {
+                            let normalizedKey = key.trim().normalize('NFD').replace(/[̀-ͯ]/g, "");
+                            // Mapeia variações comuns de escrita
+                            if(normalizedKey.toLowerCase() === 'materia' || normalizedKey.toLowerCase() === 'componente') normalizedKey = 'Materia';
+                            if(normalizedKey.toLowerCase() === 'serie' || normalizedKey.toLowerCase() === 'turma') normalizedKey = 'Serie';
+                            if(normalizedKey.toLowerCase() === 'periodo' || normalizedKey.toLowerCase() === 'turno') normalizedKey = 'Periodo';
+                            
+                            newRow[normalizedKey] = row[key]; 
+                        }
+                        return newRow;
+                    });
+                    
+                    document.getElementById('uploadStatus').innerHTML = `✅ ${file.name} carregado!`;
+                    document.getElementById('uploadStatus').classList.add('text-emerald-600');
+                    popularFiltros();
+                } catch (err) {
+                    alert('Erro ao processar arquivo Excel/CSV. Verifique a formatação das colunas.');
+                    document.getElementById('uploadStatus').innerHTML = `❌ Erro no arquivo`;
+                }
             };
             reader.readAsArrayBuffer(file);
         });
@@ -164,19 +261,19 @@
             const materias = new Set();
 
             dadosAtribuicao.forEach(item => {
-                if (item.Professor) professores.add(item.Professor);
-                if (item.Serie) series.add(item.Serie);
-                if (item.Materia) materias.add(item.Materia);
+                if (item.Professor) professores.add(item.Professor.trim());
+                if (item.Serie) series.add(String(item.Serie).trim());
+                if (item.Materia) materias.add(item.Materia.trim());
             });
 
-            preencherSelect('filterProfessor', professores);
-            preencherSelect('filterSerie', series);
-            preencherSelect('filterMateria', materias);
+            preencherSelect('filterProfessor', professores, 'Todos os Professores');
+            preencherSelect('filterSerie', series, 'Todas as Séries');
+            preencherSelect('filterMateria', materias, 'Todas as Matérias');
         }
 
-        function preencherSelect(elementId, dataset) {
+        function preencherSelect(elementId, dataset, labelTodos) {
             const select = document.getElementById(elementId);
-            select.innerHTML = '<option value="Todos">Todos</option>';
+            select.innerHTML = `<option value="Todos">${labelTodos}</option>`;
             Array.from(dataset).sort().forEach(val => {
                 select.innerHTML += `<option value="${val}">${val}</option>`;
             });
@@ -184,74 +281,99 @@
 
         function normalizarDia(diaStr) {
             if(!diaStr) return "";
-            return diaStr.toLowerCase().replace(/ç/g, 'c');
+            return diaStr.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, '');
         }
 
         function gerarHorario() {
+            if (dadosAtribuicao.length === 0) {
+                alert("Por favor, carregue um arquivo Excel ou CSV antes de gerar a grade.");
+                return;
+            }
+
             const prof = document.getElementById('filterProfessor').value;
             const periodo = document.getElementById('filterPeriodo').value;
             const serie = document.getElementById('filterSerie').value;
             const mat = document.getElementById('filterMateria').value;
 
-            // Filtrar os dados
+            // Filtro inteligente e tolerante dos dados da planilha
             let filtrados = dadosAtribuicao.filter(i => {
-                return (prof === "Todos" || i.Professor === prof) &&
-                       (periodo === "Todos" || (i.Periodo && i.Periodo.toLowerCase() === periodo.toLowerCase())) &&
-                       (serie === "Todos" || (i.Serie && String(i.Serie) === String(serie))) &&
-                       (mat === "Todos" || i.Materia === mat);
+                return (prof === "Todos" || (i.Professor && i.Professor.trim() === prof)) &&
+                       (periodo === "Todos" || (i.Periodo && i.Periodo.toLowerCase().trim() === periodo.toLowerCase())) &&
+                       (serie === "Todos" || (i.Serie && String(i.Serie).trim() === String(serie))) &&
+                       (mat === "Todos" || (i.Materia && i.Materia.trim() === mat));
             });
 
-            const tabelaBody = document.getElementById('tabelaBody');
-            tabelaBody.innerHTML = '';
+            // Alterar estados visuais
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('gradeHeader').classList.remove('hidden');
             document.getElementById('horarioTabela').classList.remove('hidden');
 
-            const titulo = prof !== "Todos" ? `Grade de Horário - Prof. ${prof}` : `Grade de Horário Customizada`;
+            const titulo = prof !== "Todos" ? `Grade de Horários — Prof. ${prof}` : (serie !== "Todos" ? `Grade de Horários — Turma: ${serie}` : `Grade de Horários customizada`);
             document.getElementById('gradeTitle').innerHTML = titulo;
 
-            // Lógica do Painel de ATPC
+            // Painel informativo de análise de ATPC
             const atpcPanel = document.getElementById('atpcPanel');
             if (prof !== "Todos") {
-                const totalAulasProf = dadosAtribuicao.filter(i => i.Professor === prof).length;
+                const totalAulasProf = dadosAtribuicao.filter(i => i.Professor && i.Professor.trim() === prof).length;
                 const devidasATPC = calcularATPC(totalAulasProf);
-                document.getElementById('atpcText').innerHTML = `O(a) docente possui <strong>${totalAulasProf} aulas</strong> cadastradas na escola. Com esta carga, são definidas <strong>${devidasATPC} ATPCs de caráter coletivo</strong>.`;
+                document.getElementById('atpcText').innerHTML = `O(a) docente <strong>${prof}</strong> possui um total de <strong>${totalAulasProf} aulas</strong> atribuídas nesta Unidade de Ensino. Com base nesta carga horária, são estipuladas obrigatoriamente <strong>${devidasATPC} ATPCs coletivas</strong> semanais.`;
                 atpcPanel.classList.remove('hidden');
             } else {
                 atpcPanel.classList.add('hidden');
             }
 
-            // Gerar layout por Período
+            const tabelaBody = document.getElementById('tabelaBody');
+            tabelaBody.innerHTML = '';
+
+            // Renderizar layouts organizados por Turnos
             ["Manhã", "Tarde"].forEach(p => {
                 if (periodo !== "Todos" && periodo.toLowerCase() !== p.toLowerCase()) return;
 
-                // Título do Período
+                // Divisor visual de turno elegante
                 const trPeriodo = document.createElement('tr');
-                trPeriodo.innerHTML = `<td colspan="6" class="bg-blue-100 font-bold p-2 text-blue-800 uppercase">${p}</td>`;
+                trPeriodo.innerHTML = `<td colspan="6" class="bg-indigo-50/80 text-center font-bold px-4 py-3 text-indigo-900 tracking-wider text-xs uppercase border-y border-slate-200">${p}</td>`;
                 tabelaBody.appendChild(trPeriodo);
 
                 estruturaHorarios[p].forEach(linha => {
                     const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-100 hover:bg-slate-50/50 transition-colors";
                     
                     if (linha.isIntervalo) {
-                        tr.innerHTML = `<td class="bg-gray-100 font-semibold p-2">${linha.nome}<br><span class="text-xs text-gray-500">${linha.tempo}</span></td>
-                                        <td colspan="5" class="bg-gray-50 text-gray-400 italic p-2">Pausa para os alunos/docentes adequados a este break</td>`;
+                        tr.innerHTML = `
+                            <td class="bg-slate-50 text-center p-3 border-r border-slate-200">
+                                <div class="font-semibold text-slate-700 text-xs">${linha.nome}</div>
+                                <div class="text-[11px] text-slate-400 font-medium">${linha.tempo}</div>
+                            </td>
+                            <td colspan="5" class="bg-slate-50/60 text-center text-slate-400 italic text-xs py-3 tracking-wide select-none font-medium">
+                                ☕ ${linha.nomeExibicao} — Pausa Pedagógica Organizada
+                            </td>
+                        `;
                     } else {
-                        let htmlRow = `<td class="font-semibold p-2">${linha.nome}<br><span class="text-xs text-gray-500">${linha.tempo}</span></td>`;
+                        let htmlRow = `
+                            <td class="bg-slate-50/80 font-medium p-3 text-center border-r border-slate-200 min-w-[120px]">
+                                <div class="font-bold text-slate-800 text-xs">${linha.nome}</div>
+                                <div class="text-[11px] text-indigo-600 font-semibold bg-indigo-50 rounded px-1.5 py-0.5 mt-1 inline-block">${linha.tempo}</div>
+                            </td>
+                        `;
+                        
                         diasSemana.forEach(dia => {
-                            // Encontrar a aula do dia para esse período e número da aula
+                            // Procura correspondência exata para o dia, aula e período
                             let aula = filtrados.find(a => 
                                 (normalizarDia(a.Dia).includes(normalizarDia(dia))) && 
                                 (String(a.Aula) === String(linha.aulaNum)) && 
-                                (a.Periodo && a.Periodo.toLowerCase() === p.toLowerCase())
+                                (a.Periodo && a.Periodo.toLowerCase().trim() === p.toLowerCase())
                             );
 
                             if(aula) {
-                                htmlRow += `<td class="p-2 border-l border-gray-200 bg-white">
-                                    <div class="font-bold text-gray-800">${aula.Serie || ''}</div>
-                                    <div class="text-xs text-gray-600 font-semibold">${aula.Materia || ''}</div>
-                                    ${prof === "Todos" ? `<div class="text-xs text-gray-500">${aula.Professor || ''}</div>` : ''}
-                                </td>`;
+                                htmlRow += `
+                                    <td class="p-3 text-center bg-white timetable-cell border-r border-slate-100 align-middle">
+                                        <div class="font-bold text-indigo-900 text-sm tracking-tight">${aula.Serie || ''}</div>
+                                        <div class="text-xs text-slate-700 font-semibold mt-0.5">${aula.Materia || ''}</div>
+                                        ${prof === "Todos" ? `<div class="text-[10px] text-slate-400 font-medium mt-1 bg-slate-100 rounded py-0.5 px-1 truncate max-w-[150px] mx-auto" title="${aula.Professor}">${aula.Professor || ''}</div>` : ''}
+                                    </td>
+                                `;
                             } else {
-                                htmlRow += `<td class="p-2 border-l border-gray-200 bg-gray-50 text-gray-300">-</td>`;
+                                htmlRow += `<td class="p-3 text-center bg-slate-50/20 text-slate-300 font-light text-xs border-r border-slate-100 align-middle select-none">-</td>`;
                             }
                         });
                         tr.innerHTML = htmlRow;
@@ -261,28 +383,136 @@
             });
         }
 
+        // Exportação Avançada para PDF Customizado
         function exportarPDF() {
             const element = document.getElementById('exportableArea');
-            if (element.innerHTML.trim() === "") return;
+            const checkTable = document.getElementById('horarioTabela');
+            if (checkTable.classList.contains('hidden')) {
+                alert("Gere uma grade de horários válida antes de exportar.");
+                return;
+            }
             
             const opt = {
-                margin:       0.5,
-                filename:     'grade-horario-2026.pdf',
+                margin:       [0.4, 0.4, 0.4, 0.4],
+                filename:     'Grade-Horarios-Escolares-2026.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2.5, useCORS: true, letterRendering: true },
                 jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
             };
             html2pdf().set(opt).from(element).save();
         }
 
+        // EXCEL PERFEITO: Geração estruturada via matriz limpa (Ignora quebras de DOM que quebram o SheetJS)
         function exportarExcel() {
-            let table = document.getElementById("horarioTabela");
-            if (table.classList.contains('hidden')) return;
+            if (dadosAtribuicao.length === 0) {
+                alert("Nenhum dado carregado para exportação.");
+                return;
+            }
 
-            let ws = XLSX.utils.table_to_sheet(table);
+            const prof = document.getElementById('filterProfessor').value;
+            const periodo = document.getElementById('filterPeriodo').value;
+            const serie = document.getElementById('filterSerie').value;
+            const mat = document.getElementById('filterMateria').value;
+
+            let filtrados = dadosAtribuicao.filter(i => {
+                return (prof === "Todos" || (i.Professor && i.Professor.trim() === prof)) &&
+                       (periodo === "Todos" || (i.Periodo && i.Periodo.toLowerCase().trim() === periodo.toLowerCase())) &&
+                       (serie === "Todos" || (i.Serie && String(i.Serie).trim() === String(serie))) &&
+                       (mat === "Todos" || (i.Materia && i.Materia.trim() === mat));
+            });
+
+            // Criação programática da Matriz para Excel livre de bugs de tags HTML
+            let matrizExcel = [];
+            
+            // Título Principal
+            const tituloStr = prof !== "Todos" ? `GRADE DE HORÁRIOS — PROF. ${prof.toUpperCase()}` : (serie !== "Todos" ? `GRADE DE HORÁRIOS — TURMA: ${serie}` : `GRADE DE HORÁRIOS ESCOLAR — GERAL`);
+            matrizExcel.push([tituloStr, "", "", "", "", ""]);
+            matrizExcel.push(["Ano Letivo: 2026 — Diretrizes SEDUC atualizadas", "", "", "", "", ""]);
+            matrizExcel.push([]); // Linha em branco para respiro visual
+
+            // Cabeçalho das Colunas
+            matrizExcel.push(["Período / Aula", "Segunda-Feira", "Terça-Feira", "Quarta-Feira", "Quinta-Feira", "Sexta-Feira"]);
+
+            ["Manhã", "Tarde"].forEach(p => {
+                if (periodo !== "Todos" && periodo.toLowerCase() !== p.toLowerCase()) return;
+
+                // Título do Bloco de Turno
+                matrizExcel.push([p.toUpperCase(), "", "", "", "", ""]);
+
+                estruturaHorarios[p].forEach(linha => {
+                    if (linha.isIntervalo) {
+                        matrizExcel.push([`${linha.nome} (${linha.tempo})`, "INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO"]);
+                    } else {
+                        let linhaDados = [`${linha.nome} (${linha.tempo})`];
+                        
+                        diasSemana.forEach(dia => {
+                            let aula = filtrados.find(a => 
+                                (normalizarDia(a.Dia).includes(normalizarDia(dia))) && 
+                                (String(a.Aula) === String(linha.aulaNum)) && 
+                                (a.Periodo && a.Periodo.toLowerCase().trim() === p.toLowerCase())
+                            );
+
+                            if (aula) {
+                                // Formata em linhas distintas dentro da mesma célula do excel usando o padrão 
+
+                                let celulaTexto = `${aula.Serie || ''}
+${aula.Materia || ''}`;
+                                if (prof === "Todos" && aula.Professor) {
+                                    celulaTexto += `
+(${aula.Professor})`;
+                                }
+                                linhaDados.push(celulaTexto);
+                            } else {
+                                linhaDados.push("-");
+                            }
+                        });
+                        matrizExcel.push(linhaDados);
+                    }
+                });
+            });
+
+            // Converte matriz diretamente para a planilha do SheetJS
+            let ws = XLSX.utils.aoa_to_sheet(matrizExcel);
             let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Horario");
-            XLSX.writeFile(wb, "Horario-Escolar.xlsx");
+
+            // Configuração Avançada de Mesclagem de células (Merges) para estética profissional
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Mescla título
+                { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }  // Mescla sub-título
+            ];
+
+            // Varre as linhas para aplicar mesclagens nos turnos e intervalos
+            let rIdx = 4; // Índice inicial dos dados da matriz
+            ["Manhã", "Tarde"].forEach(p => {
+                if (periodo !== "Todos" && periodo.toLowerCase() !== p.toLowerCase()) return;
+                
+                // Mescla título do turno
+                ws['!merges'].push({ s: { r: rIdx, c: 0 }, e: { r: rIdx, c: 5 } });
+                rIdx++;
+
+                estruturaHorarios[p].forEach(linha => {
+                    if (linha.isIntervalo) {
+                        // Mescla as colunas dos dias no intervalo
+                        ws['!merges'].push({ s: { r: rIdx, c: 1 }, e: { r: rIdx, c: 5 } });
+                    }
+                    rIdx++;
+                });
+            });
+
+            // Definir larguras de colunas ideais no Excel para evitar truncamento de texto
+            ws['!cols'] = [
+                { wch: 22 }, // Horário
+                { wch: 18 }, // Segunda
+                { wch: 18 }, // Terça
+                { wch: 18 }, // Quarta
+                { wch: 18 }, // Quinta
+                { wch: 18 }  // Sexta
+            ];
+
+            XLSX.utils.book_append_sheet(wb, ws, "Horário Escolar 2026");
+            
+            // Força a escrita e download do arquivo
+            XLSX.writeFile(wb, `Horario-Escolar-2026.xlsx`);
         }
     </script>
 </body>
