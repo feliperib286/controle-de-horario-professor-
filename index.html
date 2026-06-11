@@ -12,7 +12,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body { font-family: 'Inter', sans-serif; }
         
-        /* Esconde elementos na hora de gerar PDF via CSS tradicional (fallback) */
+        /* Esconde botões e selects na hora de gerar PDF */
         @media print {
             .no-print { display: none !important; }
             .print-padding { padding: 0 !important; }
@@ -23,7 +23,6 @@
 
     <div class="max-w-7xl mx-auto space-y-6 print-padding">
         
-        <!-- Header -->
         <header class="bg-gradient-to-r from-blue-700 via-indigo-600 to-indigo-700 text-white p-6 rounded-2xl shadow-sm no-print flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 mb-1">
@@ -35,7 +34,6 @@
             </div>
         </header>
 
-        <!-- Upload e Controles -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 no-print">
             <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
                 <div>
@@ -64,11 +62,10 @@
             <div id="emptyState" class="text-center py-8 space-y-2 no-print">
                 <span class="text-4xl">⚡</span>
                 <h3 class="text-sm font-bold text-slate-700">Aguardando docente...</h3>
-                <p class="text-slate-400 text-xs max-w-sm mx-auto">Selecione um professor para visualizar sua carga horária e montar o horário individual na grade.</p>
+                <p class="text-slate-400 text-xs max-w-sm mx-auto">Selecione um professor para visualizar a sua carga horária e montar o horário individual na grade.</p>
             </div>
 
             <div id="dashboardContent" class="hidden space-y-6">
-                <!-- Cabeçalho de Impressão -->
                 <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
                     <div>
                         <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
@@ -80,7 +77,6 @@
                     </div>
                 </div>
 
-                <!-- Montador Interativo de Grade -->
                 <div>
                     <div class="flex justify-between items-center mb-3 no-print">
                         <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Montar Grade Semanal</h3>
@@ -92,16 +88,13 @@
                     </div>
 
                     <div id="gradeContainer" class="space-y-6">
-                        <!-- Gerado via JS (Tabelas Manhã e Tarde) -->
-                    </div>
+                        </div>
                 </div>
                 
-                <!-- Lista de Aulas Atribuídas como Referência na Impressão -->
                 <div class="mt-8 pt-4 border-t border-slate-100">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência)</h3>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase">
-                        <!-- Gerado via JS -->
-                    </div>
+                        </div>
                 </div>
 
                 <div class="mt-6 text-center text-[10px] text-slate-400 font-medium">
@@ -155,12 +148,54 @@
 
             reader.onload = function(evt) {
                 try {
-                    const data = new Uint8Array(evt.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    let linhasBrutas = [];
                     
-                    const linhasBrutas = XLSX.utils.sheet_to_json(sheet, {range: 2});
-                    
+                    // Leitor Inteligente para o ficheiro CSV da SEDUC
+                    if (file.name.toLowerCase().endsWith('.csv')) {
+                        const text = evt.target.result;
+                        // Divide as linhas independentemente do formato do enter no sistema operativo
+                        const lines = text.split(/\r?\n/);
+                        let headerIdx = -1;
+                        
+                        // Localiza o cabeçalho (ignorando lixo no topo)
+                        for(let i = 0; i < lines.length; i++) {
+                            if(lines[i].includes('Professor') && lines[i].includes('Turma')) {
+                                headerIdx = i;
+                                break;
+                            }
+                        }
+                        
+                        if(headerIdx !== -1) {
+                            const headers = lines[headerIdx].split(';');
+                            for(let i = headerIdx + 1; i < lines.length; i++) {
+                                if(!lines[i].trim()) continue;
+                                const cols = lines[i].split(';');
+                                let obj = {};
+                                headers.forEach((h, idx) => {
+                                    obj[h.trim()] = cols[idx] ? cols[idx].trim() : '';
+                                });
+                                linhasBrutas.push(obj);
+                            }
+                        } else {
+                            throw new Error("Cabeçalho não encontrado");
+                        }
+                    } else {
+                        // Trata Excel tradicional (.xlsx)
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const rawJson = XLSX.utils.sheet_to_json(sheet, {header: 1});
+                        
+                        let headerIdx = 0;
+                        for(let i=0; i<rawJson.length; i++) {
+                            if(rawJson[i] && rawJson[i].includes('Professor') && rawJson[i].includes('Turma')) {
+                                headerIdx = i;
+                                break;
+                            }
+                        }
+                        linhasBrutas = XLSX.utils.sheet_to_json(sheet, {range: headerIdx});
+                    }
+
                     dadosOriginais = linhasBrutas.map(row => ({
                         Professor: row['Professor'] ? row['Professor'].trim() : 'Não Informado',
                         Serie: row['Turma'] ? row['Turma'].trim() : 'Não Informado',
@@ -168,16 +203,27 @@
                         Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado'
                     })).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
 
-                    document.getElementById('uploadStatus').innerHTML = `✅ ${file.name} Carregado!`;
+                    if (dadosOriginais.length === 0) {
+                        throw new Error("Ficheiro vazio ou sem professores válidos.");
+                    }
+
+                    document.getElementById('uploadStatus').innerHTML = `✅ Ficheiro Carregado!`;
                     document.getElementById('uploadStatus').classList.add('text-emerald-600');
                     
                     popularFiltrosOpcoes();
                 } catch (err) {
-                    alert('Erro ao ler as colunas do arquivo.');
+                    console.error(err);
+                    alert('Erro ao ler as colunas. Certifique-se de que é o ficheiro de Atribuição correto da SEDUC.');
                     document.getElementById('uploadStatus').innerHTML = `❌ Erro de Leitura`;
                 }
             };
-            reader.readAsArrayBuffer(file);
+
+            if (file.name.toLowerCase().endsWith('.csv')) {
+                // windows-1252 assegura que os acentos portugueses (ç, ã, á) apareçam corretamente no CSV
+                reader.readAsText(file, 'windows-1252');
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
         });
 
         function popularFiltrosOpcoes() {
@@ -207,7 +253,7 @@
             
             // Resumo Superior
             let totalAulas = 0;
-            turmasDoProfessor = []; // Limpa e popula opções para os selects
+            turmasDoProfessor = []; 
             
             const listaAtribuicaoBase = document.getElementById('listaAtribuicaoBase');
             listaAtribuicaoBase.innerHTML = '';
@@ -218,7 +264,7 @@
                 if(!turmasDoProfessor.includes(optName)) {
                     turmasDoProfessor.push(optName);
                 }
-                // Adiciona o cardzinho de referência no rodapé
+                
                 listaAtribuicaoBase.innerHTML += `
                     <div class="bg-slate-50 border border-slate-200 rounded p-2 text-center text-[10px]">
                         <span class="font-bold text-slate-700 block">${a.Serie}</span>
@@ -240,12 +286,10 @@
             const container = document.getElementById('gradeContainer');
             container.innerHTML = '';
 
-            // Options do Select Baseado nas turmas do professor + ATPC
             let optionsHTML = `<option value="">- Livre -</option>`;
             turmasDoProfessor.sort().forEach(t => {
                 optionsHTML += `<option value="${t}">${t}</option>`;
             });
-            // Adiciona opções de ATPC e Reuniões para montagem completa
             optionsHTML += `<option value="ATPC (Escola)" class="font-bold text-indigo-600">📌 ATPC (Escola)</option>`;
             optionsHTML += `<option value="Janela / Vago">Janela / Vago</option>`;
 
@@ -302,13 +346,11 @@
                 container.innerHTML += html;
             });
 
-            // Listeners para sincronizar o select com a div de impressão
             document.querySelectorAll('.interactive-select').forEach(sel => {
                 sel.addEventListener('change', function() {
                     const printDiv = this.nextElementSibling;
                     printDiv.innerText = this.value;
                     
-                    // Highlights visuais
                     if(this.value.includes("ATPC")) {
                         this.classList.add("bg-indigo-50", "text-indigo-700", "border-indigo-300");
                         printDiv.classList.add("text-indigo-700");
@@ -333,10 +375,8 @@
         }
 
         function prepararParaImpressao() {
-            // Esconde os Selects (HTML nativo) e mostra as Divs em texto puro
             document.querySelectorAll('.interactive-select').forEach(sel => {
                 const printDiv = sel.nextElementSibling;
-                // Se estiver vazio, coloca um traço para ficar bonito no PDF
                 printDiv.innerText = sel.value || "-";
                 sel.classList.add('hidden');
                 printDiv.classList.remove('hidden');
@@ -388,16 +428,12 @@
                     let cols = tr.querySelectorAll('td');
                     let linhaArr = [];
                     
-                    // Coluna de Horário
-                    let horarioTexto = cols[0].innerText.replace(/
-/g, ' '); 
+                    let horarioTexto = cols[0].innerText.replace(/\n/g, ' '); 
                     linhaArr.push(horarioTexto);
 
                     if(cols.length === 2) {
-                        // Linha de intervalo
                         linhaArr.push("INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO");
                     } else {
-                        // Células interativas
                         for(let i=1; i<=5; i++) {
                             let select = cols[i].querySelector('select');
                             linhaArr.push(select && select.value ? select.value : "-");
@@ -405,12 +441,10 @@
                     }
                     matriz.push(linhaArr);
                 });
-                matriz.push([]); // Espaço entre turnos
+                matriz.push([]); 
             });
 
             let ws = XLSX.utils.aoa_to_sheet(matriz);
-            
-            // Estilização simples das larguras no Excel
             ws['!cols'] = [{wch: 20}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}];
 
             let wb = XLSX.utils.book_new();
