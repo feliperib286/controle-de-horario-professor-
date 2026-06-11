@@ -18,22 +18,25 @@
             .print-padding { padding: 0 !important; }
         }
 
-        /* Compressão especial para forçar 1 página no PDF */
+        /* Compressão especial para colar no topo e forçar 1 página no PDF */
         .pdf-compact {
-            padding: 15px !important;
+            padding: 5px 15px !important; /* Tira o padding grande do topo */
             border: none !important;
             box-shadow: none !important;
+            min-height: auto !important; /* Tira a altura mínima */
+            justify-content: flex-start !important; /* Cola o conteúdo no topo ao invés de centralizar */
         }
         .pdf-compact table th, .pdf-compact table td {
-            padding: 4px !important; 
+            padding: 3px !important; 
             font-size: 10px !important;
         }
         .pdf-compact .space-y-6 > * + * {
-            margin-top: 10px !important; 
+            margin-top: 8px !important; 
         }
-        .pdf-compact .mt-8 { margin-top: 15px !important; }
-        .pdf-compact .pt-4 { padding-top: 10px !important; }
-        .pdf-compact .mb-3 { margin-bottom: 5px !important; }
+        .pdf-compact .mt-8 { margin-top: 10px !important; }
+        .pdf-compact .pt-4 { padding-top: 5px !important; }
+        .pdf-compact .mb-3 { margin-bottom: 3px !important; }
+        .pdf-compact .pb-4 { padding-bottom: 5px !important; border-bottom-width: 1px !important; }
         .pdf-compact #listaAtribuicaoBase {
             grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 6px !important;
@@ -42,13 +45,13 @@
             padding: 4px !important;
             font-size: 9px !important;
         }
+        .pdf-compact h2 { font-size: 16px !important; line-height: 1 !important; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 antialiased p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto space-y-6 print-padding">
         
-        <!-- Cabeçalho -->
         <header class="bg-gradient-to-r from-blue-700 via-indigo-600 to-indigo-700 text-white p-6 rounded-2xl shadow-sm no-print flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
                 <div class="flex items-center gap-2 mb-1">
@@ -60,7 +63,6 @@
             </div>
         </header>
 
-        <!-- Upload Global Acumulativo -->
         <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative no-print">
             <button onclick="limparSistema()" class="absolute top-4 right-4 text-[10px] text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2 py-1 rounded transition-colors shadow-sm border border-rose-100">🗑 Limpar Tudo</button>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Base de Atribuição (Acumulativa)</h3>
@@ -73,7 +75,6 @@
             </div>
         </div>
 
-        <!-- Navegação de Abas -->
         <div id="tabsNav" class="hidden border-b border-slate-200 no-print">
             <nav class="-mb-px flex space-x-8">
                 <button onclick="mudarAba('montador')" id="btnAbaMontador" class="border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors">
@@ -85,10 +86,8 @@
             </nav>
         </div>
 
-        <!-- CONTEÚDO DAS ABAS -->
         <div id="tabsContent" class="hidden">
             
-            <!-- ABA 1: MONTADOR -->
             <div id="abaMontador" class="space-y-6">
                 <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 no-print">
                     <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Configurações da Grade</h3>
@@ -135,7 +134,7 @@
                         <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
                             <div>
                                 <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
-                                <p class="text-xs text-slate-500 mt-1"><span id="printEscolaNome" class="font-bold text-slate-700">ESCOLA ESTADUAL</span> — Horário de Trabalho Individual — Ano Letivo 2026</p>
+                                <p class="text-xs text-slate-500 mt-1"><span id="printEscolaNome" class="font-bold text-slate-700">ESCOLA ESTADUAL</span> — Horário Individual — 2026</p>
                             </div>
                             <div class="text-right">
                                 <div id="printAulas" class="text-sm font-bold text-slate-700">Aulas: 0</div>
@@ -143,7 +142,6 @@
                             </div>
                         </div>
 
-                        <!-- Formulário Manual de Aulas -->
                         <div class="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl no-print">
                             <h4 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-3">➕ Adicionar Projeto ou Aula Manual</h4>
                             <div class="flex flex-col md:flex-row gap-3">
@@ -168,7 +166,7 @@
                         </div>
                         
                         <div class="mt-8 pt-4 border-t border-slate-100">
-                            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência para Validação)</h3>
+                            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência para Validação)</h3>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase"></div>
                         </div>
 
@@ -179,7 +177,6 @@
                 </main>
             </div>
 
-            <!-- ABA 2: MAPA DE DISCIPLINAS -->
             <div id="abaDisciplinas" class="hidden space-y-6">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 pb-4">
@@ -206,8 +203,7 @@
                                 </tr>
                             </thead>
                             <tbody id="tbodyDisciplinas" class="divide-y divide-slate-100 text-slate-700">
-                                <!-- Preenchido via JS -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -271,7 +267,6 @@
             document.getElementById('fileUpload').value = ""; 
         }
 
-        // Lógica de Abas
         function mudarAba(abaDestino) {
             document.getElementById('abaMontador').classList.add('hidden');
             document.getElementById('abaDisciplinas').classList.add('hidden');
@@ -351,7 +346,6 @@
                             Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado'
                         })).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
 
-                        // Acumula os dados
                         dadosOriginais = dadosOriginais.concat(novasAulas);
 
                     } catch (err) {
@@ -361,7 +355,6 @@
 
                     processados++;
                     
-                    // Se finalizou todos os arquivos selecionados
                     if (processados === files.length) {
                         if (dadosOriginais.length > 0) {
                             document.getElementById('uploadStatus').innerHTML = `✅ ${dadosOriginais.length} registros acumulados!`;
@@ -378,7 +371,6 @@
                             popularFiltroMateriasGeral();
                             renderizarTabelaDisciplinas();
                             
-                            // Se já tem professor selecionado, atualiza
                             if (document.getElementById('filterProfessor').value !== "Todos") {
                                 renderizarDashboard();
                             }
@@ -397,7 +389,6 @@
             });
         });
 
-        // FUNÇÃO DE INCLUSÃO MANUAL DE AULAS/PROJETOS
         function adicionarAulaManual() {
             const prof = document.getElementById('filterProfessor').value;
             if(prof === "Todos") return alert("Selecione um professor primeiro!");
@@ -417,14 +408,12 @@
                 Materia: materia
             });
 
-            // Limpa o formzinho manual
             document.getElementById('manualMateria').value = '';
             document.getElementById('manualSerie').value = '';
             document.getElementById('manualAulas').value = '';
 
             alert("Projeto / Aula Manual adicionado com sucesso à carga do professor!");
             
-            // Atualiza tudo
             popularFiltroMateriasGeral();
             renderizarTabelaDisciplinas();
             renderizarDashboard(); 
@@ -442,13 +431,11 @@
                 selProf.innerHTML += `<option value="${p}">${p}</option>`;
             });
 
-            // Mantém a seleção se existir
             if(Array.from(professores).includes(valorAtual)) {
                 selProf.value = valorAtual;
             }
         }
 
-        // LÓGICA DA ABA MAPA DE DISCIPLINAS
         function popularFiltroMateriasGeral() {
             const materias = new Set();
             dadosOriginais.forEach(i => materias.add(i.Materia));
@@ -471,7 +458,6 @@
             const tbody = document.getElementById('tbodyDisciplinas');
             tbody.innerHTML = '';
 
-            // Agrupa por Matéria -> Professor
             const mapa = {};
             dadosOriginais.forEach(item => {
                 if (matFiltrada !== "Todas" && item.Materia !== matFiltrada) return;
@@ -500,7 +486,6 @@
             });
         }
 
-        // LÓGICA DA ABA MONTADOR
         function renderizarDashboard() {
             const prof = document.getElementById('filterProfessor').value;
             atualizarCabecalho();
@@ -531,7 +516,6 @@
                     turmasDoProfessor.push(optName);
                 }
                 
-                // Soma (agrega) as aulas se houver arquivos repetidos ou registros múltiplos da mesma matéria pro prof
                 limitesAtribuicao[optName] = (limitesAtribuicao[optName] || 0) + a.Aulas;
             });
 
@@ -717,7 +701,7 @@
             prepararParaImpressao();
 
             const opt = {
-                margin:       [0.2, 0.2, 0.2, 0.2], 
+                margin:       [0.1, 0.2, 0.2, 0.2], 
                 filename:     `Horario_Individual_${prof.replace(/ /g, '_')}_2026.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2 },
