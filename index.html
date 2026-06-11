@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Horários Escolares - 2026</title>
+    <!-- Tailwind CSS para Estilização rápida -->
+    <script src="[cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <!-- SheetJS (Lê e Exporta Excel) -->
+    <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js)"></script>
+    <!-- html2pdf (Exporta para PDF) -->
+    <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js)"></script>
+    <style>
+        table, th, td { border: 1px solid #e5e7eb; }
+        .print-break { page-break-inside: avoid; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-6 font-sans">
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+        <h1 class="text-3xl font-bold text-blue-700 mb-6 border-b pb-4">Gerador de Horários - Atribuição de Aulas</h1>
+
+        <!-- File Upload -->
+        <div class="mb-6 bg-blue-50 p-4 rounded-md border border-blue-200">
+            <label class="block font-semibold mb-2">1. Carregue o arquivo Excel ou CSV de Atribuição de Aulas:</label>
+            <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" class="block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold
+              file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer"/>
+        </div>
+
+        <!-- Filters -->
+        <h2 class="text-xl font-bold mt-8 mb-4">2. Filtros</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div>
+                <label class="text-xs font-semibold uppercase text-gray-500">Professor</label>
+                <select id="filterProfessor" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Todos">Todos</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold uppercase text-gray-500">Período</label>
+                <select id="filterPeriodo" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Todos">Todos</option>
+                    <option value="Manhã">Manhã</option>
+                    <option value="Tarde">Tarde</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold uppercase text-gray-500">Série/Turma</label>
+                <select id="filterSerie" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Todos">Todos</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-xs font-semibold uppercase text-gray-500">Matéria</label>
+                <select id="filterMateria" class="w-full p-2 border rounded-md outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="Todos">Todos</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Botões de Ação -->
+        <div class="flex gap-4 mb-8">
+            <button onclick="gerarHorario()" class="bg-blue-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-blue-700">Gerar Grade</button>
+            <button onclick="exportarPDF()" class="bg-red-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-red-700">Baixar PDF</button>
+            <button onclick="exportarExcel()" class="bg-green-600 text-white font-bold py-2 px-6 rounded shadow hover:bg-green-700">Baixar Excel</button>
+        </div>
+
+        <!-- Área de Exportação e Visualização -->
+        <div id="exportableArea" class="bg-white print-break">
+            <!-- Info ATPC -->
+            <div id="atpcPanel" class="hidden mb-4 p-4 border-l-4 border-yellow-500 bg-yellow-50 text-yellow-900 rounded-r-md">
+                <h3 class="font-bold">Análise Organizacional (Diretrizes ATPC 2026):</h3>
+                <p id="atpcText" class="text-sm mt-1"></p>
+                <p class="text-xs text-gray-600 mt-2">*Cálculo referencial p/ salas regulares (Resolução SEDUC 105/2024 e Documento Orientador 2026). Consulte variações para Projetos (PEI, VOAR, etc).</p>
+            </div>
+
+            <div id="gradeTitle" class="text-xl font-bold mb-4 text-center text-gray-800"></div>
+            
+            <div class="overflow-x-auto">
+                <table id="horarioTabela" class="w-full text-sm text-center border-collapse hidden">
+                    <thead class="bg-gray-200 font-bold text-gray-700">
+                        <tr>
+                            <th class="p-3 w-1/6">Período / Aula</th>
+                            <th class="p-3 w-1/6">Segunda</th>
+                            <th class="p-3 w-1/6">Terça</th>
+                            <th class="p-3 w-1/6">Quarta</th>
+                            <th class="p-3 w-1/6">Quinta</th>
+                            <th class="p-3 w-1/6">Sexta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaBody" class="text-gray-800">
+                        <!-- Gerado via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dadosAtribuicao = [];
+        const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
+        
+        // Estrutura de horários com os intervalos mistos da escola
+        const estruturaHorarios = {
+            "Manhã": [
+                { nome: "1ª Aula", tempo: "07:00 as 07:50", isIntervalo: false, aulaNum: 1 },
+                { nome: "2ª Aula", tempo: "07:50 as 08:40", isIntervalo: false, aulaNum: 2 },
+                { nome: "3ª Aula", tempo: "08:40 as 09:30", isIntervalo: false, aulaNum: 3 },
+                { nome: "Intervalo 1", tempo: "09:30 as 09:50", isIntervalo: true },
+                { nome: "4ª Aula", tempo: "09:50 as 10:40", isIntervalo: false, aulaNum: 4 },
+                { nome: "Intervalo 2", tempo: "10:20 as 10:40", isIntervalo: true },
+                { nome: "5ª Aula", tempo: "10:40 as 11:30", isIntervalo: false, aulaNum: 5 },
+                { nome: "6ª Aula", tempo: "11:30 as 12:20", isIntervalo: false, aulaNum: 6 }
+            ],
+            "Tarde": [
+                { nome: "1ª Aula", tempo: "13:00 as 13:50", isIntervalo: false, aulaNum: 1 },
+                { nome: "2ª Aula", tempo: "13:50 as 14:40", isIntervalo: false, aulaNum: 2 },
+                { nome: "Intervalo 1", tempo: "14:40 as 15:00", isIntervalo: true },
+                { nome: "3ª Aula", tempo: "15:00 as 15:50", isIntervalo: false, aulaNum: 3 },
+                { nome: "Intervalo 2", tempo: "15:30 as 15:50", isIntervalo: true },
+                { nome: "4ª Aula", tempo: "15:50 as 16:40", isIntervalo: false, aulaNum: 4 },
+                { nome: "5ª Aula", tempo: "16:40 as 17:30", isIntervalo: false, aulaNum: 5 },
+                { nome: "6ª Aula", tempo: "17:30 as 18:20", isIntervalo: false, aulaNum: 6 }
+            ]
+        };
+
+        // Regra de ATPCs baseada no anexo I do documento orientador da Seduc 2026
+        function calcularATPC(qtdAulas) {
+            if(qtdAulas <= 4) return 1;
+            if(qtdAulas <= 15) return 2;
+            if(qtdAulas <= 24) return 3;
+            if(qtdAulas <= 31) return 4;
+            if(qtdAulas >= 32) return 5;
+            return 0;
+        }
+
+        document.getElementById('fileUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(evt) {
+                const data = new Uint8Array(evt.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Normaliza o cabelhaço para garantir que remove os espaços
+                dadosAtribuicao = XLSX.utils.sheet_to_json(sheet).map(row => {
+                    let newRow = {};
+                    for (let key in row) {
+                        newRow[key.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, "")] = row[key]; 
+                    }
+                    return newRow;
+                });
+                
+                popularFiltros();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function popularFiltros() {
+            const professores = new Set();
+            const series = new Set();
+            const materias = new Set();
+
+            dadosAtribuicao.forEach(item => {
+                if (item.Professor) professores.add(item.Professor);
+                if (item.Serie) series.add(item.Serie);
+                if (item.Materia) materias.add(item.Materia);
+            });
+
+            preencherSelect('filterProfessor', professores);
+            preencherSelect('filterSerie', series);
+            preencherSelect('filterMateria', materias);
+        }
+
+        function preencherSelect(elementId, dataset) {
+            const select = document.getElementById(elementId);
+            select.innerHTML = '<option value="Todos">Todos</option>';
+            Array.from(dataset).sort().forEach(val => {
+                select.innerHTML += `<option value="${val}">${val}</option>`;
+            });
+        }
+
+        function normalizarDia(diaStr) {
+            if(!diaStr) return "";
+            return diaStr.toLowerCase().replace(/ç/g, 'c');
+        }
+
+        function gerarHorario() {
+            const prof = document.getElementById('filterProfessor').value;
+            const periodo = document.getElementById('filterPeriodo').value;
+            const serie = document.getElementById('filterSerie').value;
+            const mat = document.getElementById('filterMateria').value;
+
+            // Filtrar os dados
+            let filtrados = dadosAtribuicao.filter(i => {
+                return (prof === "Todos" || i.Professor === prof) &&
+                       (periodo === "Todos" || (i.Periodo && i.Periodo.toLowerCase() === periodo.toLowerCase())) &&
+                       (serie === "Todos" || (i.Serie && String(i.Serie) === String(serie))) &&
+                       (mat === "Todos" || i.Materia === mat);
+            });
+
+            const tabelaBody = document.getElementById('tabelaBody');
+            tabelaBody.innerHTML = '';
+            document.getElementById('horarioTabela').classList.remove('hidden');
+
+            const titulo = prof !== "Todos" ? `Grade de Horário - Prof. ${prof}` : `Grade de Horário Customizada`;
+            document.getElementById('gradeTitle').innerHTML = titulo;
+
+            // Lógica do Painel de ATPC
+            const atpcPanel = document.getElementById('atpcPanel');
+            if (prof !== "Todos") {
+                const totalAulasProf = dadosAtribuicao.filter(i => i.Professor === prof).length;
+                const devidasATPC = calcularATPC(totalAulasProf);
+                document.getElementById('atpcText').innerHTML = `O(a) docente possui <strong>${totalAulasProf} aulas</strong> cadastradas na escola. Com esta carga, são definidas <strong>${devidasATPC} ATPCs de caráter coletivo</strong>.`;
+                atpcPanel.classList.remove('hidden');
+            } else {
+                atpcPanel.classList.add('hidden');
+            }
+
+            // Gerar layout por Período
+            ["Manhã", "Tarde"].forEach(p => {
+                if (periodo !== "Todos" && periodo.toLowerCase() !== p.toLowerCase()) return;
+
+                // Título do Período
+                const trPeriodo = document.createElement('tr');
+                trPeriodo.innerHTML = `<td colspan="6" class="bg-blue-100 font-bold p-2 text-blue-800 uppercase">${p}</td>`;
+                tabelaBody.appendChild(trPeriodo);
+
+                estruturaHorarios[p].forEach(linha => {
+                    const tr = document.createElement('tr');
+                    
+                    if (linha.isIntervalo) {
+                        tr.innerHTML = `<td class="bg-gray-100 font-semibold p-2">${linha.nome}<br><span class="text-xs text-gray-500">${linha.tempo}</span></td>
+                                        <td colspan="5" class="bg-gray-50 text-gray-400 italic p-2">Pausa para os alunos/docentes adequados a este break</td>`;
+                    } else {
+                        let htmlRow = `<td class="font-semibold p-2">${linha.nome}<br><span class="text-xs text-gray-500">${linha.tempo}</span></td>`;
+                        diasSemana.forEach(dia => {
+                            // Encontrar a aula do dia para esse período e número da aula
+                            let aula = filtrados.find(a => 
+                                (normalizarDia(a.Dia).includes(normalizarDia(dia))) && 
+                                (String(a.Aula) === String(linha.aulaNum)) && 
+                                (a.Periodo && a.Periodo.toLowerCase() === p.toLowerCase())
+                            );
+
+                            if(aula) {
+                                htmlRow += `<td class="p-2 border-l border-gray-200 bg-white">
+                                    <div class="font-bold text-gray-800">${aula.Serie || ''}</div>
+                                    <div class="text-xs text-gray-600 font-semibold">${aula.Materia || ''}</div>
+                                    ${prof === "Todos" ? `<div class="text-xs text-gray-500">${aula.Professor || ''}</div>` : ''}
+                                </td>`;
+                            } else {
+                                htmlRow += `<td class="p-2 border-l border-gray-200 bg-gray-50 text-gray-300">-</td>`;
+                            }
+                        });
+                        tr.innerHTML = htmlRow;
+                    }
+                    tabelaBody.appendChild(tr);
+                });
+            });
+        }
+
+        function exportarPDF() {
+            const element = document.getElementById('exportableArea');
+            if (element.innerHTML.trim() === "") return;
+            
+            const opt = {
+                margin:       0.5,
+                filename:     'grade-horario-2026.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+            };
+            html2pdf().set(opt).from(element).save();
+        }
+
+        function exportarExcel() {
+            let table = document.getElementById("horarioTabela");
+            if (table.classList.contains('hidden')) return;
+
+            let ws = XLSX.utils.table_to_sheet(table);
+            let wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Horario");
+            XLSX.writeFile(wb, "Horario-Escolar.xlsx");
+        }
+    </script>
+</body>
+</html>
