@@ -1,758 +1,805 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montador de Horário Individual - SEDUC</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        
-        /* Esconde botões e selects na hora da impressão nativa */
-        @media print {
-            .no-print { display: none !important; }
-            .print-padding { padding: 0 !important; }
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horários Escolares 2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --blue:#185FA5;--blue-lt:#E6F1FB;--blue-dk:#0C447C;
+  --green:#3B6D11;--green-lt:#EAF3DE;
+  --red:#A32D2D;--red-lt:#FCEBEB;
+  --amber-bg:#FAEEDA;--amber-b:#BA7517;--amber-t:#412402;
+  --bg:#F1F3F6;--sur:#fff;--sur2:#f8f9fa;
+  --bor:#e2e5ea;--bor2:#d0d5dd;
+  --tx:#111827;--tx2:#6b7280;--tx3:#9ca3af;
+  --r:10px;--rs:6px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05)
+}
+body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:var(--tx);min-height:100vh}
+.page{max-width:1100px;margin:0 auto;padding:2rem 1rem}
+h1{font-size:22px;font-weight:600}
+.sub{font-size:13px;color:var(--tx2);margin-top:2px}
+.hdr{margin-bottom:1.5rem;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--sh)}
+.slabel{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--bor);margin-bottom:1.25rem}
+.tab{padding:8px 18px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;border-radius:var(--rs) var(--rs) 0 0;transition:all .15s;white-space:nowrap}
+.tab:hover{color:var(--tx);background:var(--sur2)}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}
+.panel{display:none}.panel.active{display:block}
+/* UPLOAD */
+.dropzone{border:1.5px dashed var(--bor2);border-radius:var(--r);padding:1.5rem;text-align:center;cursor:pointer;transition:all .15s}
+.dropzone:hover{border-color:var(--blue);background:var(--blue-lt)}
+.dropzone input{display:none}
+/* FORM */
+.filters,.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+label{font-size:12px;font-weight:500;color:var(--tx2);display:block;margin-bottom:4px}
+select,input[type=text]{width:100%;padding:7px 10px;border:1px solid var(--bor2);border-radius:var(--rs);font-size:13px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .15s}
+select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,95,165,.15)}
+/* BUTTONS */
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--rs);font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--bor2);background:var(--sur);color:var(--tx);transition:all .15s}
+.btn:hover{background:var(--sur2)}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--blue)}.btn-primary:hover{background:var(--blue-dk);border-color:var(--blue-dk)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red)}.btn-red:hover{background:#791F1F}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green)}.btn-green:hover{background:#27500A}
+.btn-sm{padding:5px 10px;font-size:12px}
+/* MSGS */
+.ok{background:var(--green-lt);border:1px solid #97C459;border-radius:var(--rs);padding:8px 12px;font-size:13px;color:#173404;margin-bottom:.75rem}
+.err{background:var(--red-lt);border:1px solid #F09595;border-radius:var(--rs);padding:8px 12px;font-size:13px;color:#501313;margin-bottom:.75rem}
+.info{background:var(--blue-lt);border:1px solid #A3C4E8;border-radius:var(--rs);padding:8px 12px;font-size:13px;color:#0C447C;margin-bottom:.75rem}
+/* ATPC */
+.atpc-box{background:var(--amber-bg);border-left:3px solid var(--amber-b);border-radius:0 var(--rs) var(--rs) 0;padding:.75rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--amber-t)}
+/* TABLE */
+.t-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--sur2);color:var(--tx2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:9px 8px;border:1px solid var(--bor);text-align:center}
+td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:center}
+.td-per{background:var(--blue-lt);font-weight:600;font-size:11px;color:var(--blue-dk);text-transform:uppercase;letter-spacing:.06em}
+.td-dia{background:#f0f0f5;font-weight:600;font-size:11px;color:#333;text-transform:uppercase}
+.td-h{text-align:left;white-space:nowrap;background:var(--sur2)}
+.h-nome{font-size:12px;font-weight:500;color:var(--tx);display:block}
+.h-tempo{font-size:10px;color:var(--tx3)}
+.td-int{background:#f5f5f5;font-size:11px;color:var(--tx3);font-style:italic}
+.td-aula{background:var(--sur);transition:background .1s}
+.td-aula:hover{background:#f0f7ff}
+.aula-mat{font-size:12px;font-weight:600;color:var(--tx)}
+.aula-prof{font-size:11px;color:var(--blue)}
+.aula-sub{font-size:10px;color:var(--tx3);font-style:italic}
+.td-vazio{background:var(--sur2);color:var(--tx3);font-size:18px}
+.grade-title{font-size:16px;font-weight:600;text-align:center;color:var(--tx);margin-bottom:1rem}
 
-        /* Compressão especial para colar no topo e forçar 1 página no PDF */
-        .pdf-compact {
-            padding: 5px 15px !important; /* Tira o padding grande do topo */
-            border: none !important;
-            box-shadow: none !important;
-            min-height: auto !important; /* Tira a altura mínima */
-            justify-content: flex-start !important; /* Cola o conteúdo no topo ao invés de centralizar */
-        }
-        .pdf-compact table th, .pdf-compact table td {
-            padding: 3px !important; 
-            font-size: 10px !important;
-        }
-        .pdf-compact .space-y-6 > * + * {
-            margin-top: 8px !important; 
-        }
-        .pdf-compact .mt-8 { margin-top: 10px !important; }
-        .pdf-compact .pt-4 { padding-top: 5px !important; }
-        .pdf-compact .mb-3 { margin-bottom: 3px !important; }
-        .pdf-compact .pb-4 { padding-bottom: 5px !important; border-bottom-width: 1px !important; }
-        .pdf-compact #listaAtribuicaoBase {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 6px !important;
-        }
-        .pdf-compact #listaAtribuicaoBase > div {
-            padding: 4px !important;
-            font-size: 9px !important;
-        }
-        .pdf-compact h2 { font-size: 16px !important; line-height: 1 !important; }
-    </style>
+/* TITULAR TABLE */
+.tit-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:.75rem}
+.tit-table th{background:var(--blue-lt);color:var(--blue-dk);font-weight:600;font-size:11px;text-transform:uppercase;padding:8px 10px;border:1px solid #A3C4E8;text-align:left}
+.tit-table td{padding:6px 8px;border:1px solid var(--bor);vertical-align:middle}
+.tit-table tr:nth-child(even) td{background:#fafbfc}
+.tit-table select{border:1px solid var(--bor2);border-radius:4px;padding:4px 6px;font-size:12px;width:100%;background:white}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:99px;font-weight:500}
+.badge-m{background:#FFF3CD;color:#856404}
+.badge-t{background:#D1ECF1;color:#0C5460}
+.badge-sub{background:#f0e6ff;color:#6b21a8}
+.tag-new{background:#dcfce7;color:#166534;font-size:10px;padding:1px 6px;border-radius:4px;font-weight:600;margin-left:4px}
+
+/* MANUAL TABLE */
+.man-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:.75rem}
+.man-table th{background:var(--sur2);color:var(--tx2);font-weight:600;font-size:11px;text-transform:uppercase;padding:8px 10px;border:1px solid var(--bor);text-align:left}
+.man-table td{padding:6px 8px;border:1px solid var(--bor);vertical-align:middle}
+.man-table tr:hover td{background:#fafbfc}
+
+#gradeArea{display:none}
+.empty-st{text-align:center;padding:3rem 1rem;color:var(--tx2)}
+</style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 antialiased p-4 md:p-8">
+<body>
+<div class="page">
 
-    <div class="max-w-7xl mx-auto space-y-6 print-padding">
-        
-        <header class="bg-gradient-to-r from-blue-700 via-indigo-600 to-indigo-700 text-white p-6 rounded-2xl shadow-sm no-print flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="bg-blue-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-blue-50">Seduc SP — Jacareí</span>
-                    <span class="bg-amber-500 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider text-amber-950">Montador Interativo</span>
-                </div>
-                <h1 class="text-2xl font-bold tracking-tight">Atribuição & Montador de Horário Individual</h1>
-                <p class="text-indigo-100 text-xs mt-0.5">Validação de Carga, Múltiplos Arquivos e Inclusão Manual de Projetos.</p>
-            </div>
-        </header>
+<div class="hdr">
+  <div>
+    <h1>📅 Horários Escolares</h1>
+    <div class="sub">Grade semanal com professor titular — 2026</div>
+  </div>
+</div>
 
-        <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 relative no-print">
-            <button onclick="limparSistema()" class="absolute top-4 right-4 text-[10px] text-rose-500 hover:text-rose-700 font-bold bg-rose-50 px-2 py-1 rounded transition-colors shadow-sm border border-rose-100">🗑 Limpar Tudo</button>
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">1. Base de Atribuição (Acumulativa)</h3>
-            <p class="text-[10px] text-slate-500 mb-3">Você pode selecionar vários arquivos de uma vez ou carregar novos arquivos sucessivamente. Eles serão somados.</p>
-            
-            <div class="relative border-2 border-dashed border-slate-200 hover:border-indigo-500 bg-slate-50 rounded-xl p-4 text-center cursor-pointer transition-colors group">
-                <input type="file" id="fileUpload" accept=".csv, .xlsx, .xls" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
-                <span class="text-2xl block mb-1 group-hover:scale-110 transition-transform">📁</span>
-                <p class="text-xs font-semibold text-slate-700" id="uploadStatus">Clique ou arraste o(s) arquivo(s) CSV/Excel aqui</p>
-            </div>
-        </div>
+<!-- ===== ENTRADA ===== -->
+<div class="card">
+  <div class="tabs">
+    <div class="tab active" onclick="mudarAba('excel',this)">📂 Importar Excel</div>
+    <div class="tab" onclick="mudarAba('titular',this)">👤 Professor Titular</div>
+    <div class="tab" onclick="mudarAba('manual',this)">✏️ Inserir Manualmente</div>
+  </div>
 
-        <div id="tabsNav" class="hidden border-b border-slate-200 no-print">
-            <nav class="-mb-px flex space-x-8">
-                <button onclick="mudarAba('montador')" id="btnAbaMontador" class="border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors">
-                    Montador de Grade
-                </button>
-                <button onclick="mudarAba('disciplinas')" id="btnAbaDisciplinas" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors">
-                    Mapa de Disciplinas
-                </button>
-            </nav>
-        </div>
-
-        <div id="tabsContent" class="hidden">
-            
-            <div id="abaMontador" class="space-y-6">
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 no-print">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">2. Configurações da Grade</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Nome da Escola</label>
-                            <input list="escolasJacarei" id="escolaNome" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: EE Cel. Carlos Porto" onchange="atualizarCabecalho()">
-                            <datalist id="escolasJacarei">
-                                <option value="EE Amância Dias Sampaio">
-                                <option value="EE Antônio Viana">
-                                <option value="EE Benedicto Mauro dos Santos">
-                                <option value="EE Cel. Carlos Porto">
-                                <option value="EE Darci Lopes">
-                                <option value="EE Dirceu Junqueira de Souza">
-                                <option value="EE Francisco Feliciano F da Silva">
-                                <option value="EE João Cruz">
-                                <option value="EE Profª. Maria Helena P. P. Osório">
-                            </datalist>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Professor(a)</label>
-                            <select id="filterProfessor" onchange="renderizarDashboard()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
-                                <option value="Todos">-- Carregue o arquivo --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-500 mb-1">Acúmulo de Cargo?</label>
-                            <select id="temAcumulo" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
-                                <option value="nao">Não (Máximo 10 aulas/dia)</option>
-                                <option value="sim">Sim (Máximo 14 aulas/dia)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <main id="exportableArea" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[250px] flex flex-col justify-center">
-                    <div id="emptyState" class="text-center py-8 space-y-2 no-print">
-                        <span class="text-4xl">⚡</span>
-                        <h3 class="text-sm font-bold text-slate-700">Aguardando docente...</h3>
-                        <p class="text-slate-400 text-xs max-w-sm mx-auto">Selecione um professor para montar o horário com validação inteligente e projetos.</p>
-                    </div>
-
-                    <div id="dashboardContent" class="hidden space-y-6">
-                        <div class="border-b pb-4 border-slate-100 flex justify-between items-end">
-                            <div>
-                                <h2 id="printNomeProf" class="text-xl font-bold text-slate-800 uppercase tracking-tight">NOME DO PROFESSOR</h2>
-                                <p class="text-xs text-slate-500 mt-1"><span id="printEscolaNome" class="font-bold text-slate-700">ESCOLA ESTADUAL</span> — Horário Individual — 2026</p>
-                            </div>
-                            <div class="text-right">
-                                <div id="printAulas" class="text-sm font-bold text-slate-700">Aulas: 0</div>
-                                <div id="printATPC" class="text-sm font-bold text-indigo-600">ATPC: 0</div>
-                            </div>
-                        </div>
-
-                        <div class="bg-indigo-50/50 border border-indigo-100 p-4 rounded-xl no-print">
-                            <h4 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-3">➕ Adicionar Projeto ou Aula Manual</h4>
-                            <div class="flex flex-col md:flex-row gap-3">
-                                <input type="text" id="manualMateria" placeholder="Disciplina / Projeto (Ex: Sala de Leitura)" class="w-full md:w-1/3 p-2 text-xs font-medium border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
-                                <input type="text" id="manualSerie" placeholder="Série / Turma (Ex: Geral ou 6ºA)" class="w-full md:w-1/3 p-2 text-xs font-medium border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
-                                <input type="number" id="manualAulas" placeholder="Nº Aulas" min="1" class="w-full md:w-1/4 p-2 text-xs font-medium border border-slate-200 rounded-lg outline-none focus:border-indigo-500">
-                                <button onclick="adicionarAulaManual()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs py-2 px-6 rounded-lg transition-colors whitespace-nowrap shadow-sm">Incluir</button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <div class="flex justify-between items-center mb-3 no-print">
-                                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Montar Grade Semanal</h3>
-                                <div class="flex gap-2">
-                                    <button onclick="limparGrade()" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg font-semibold transition-colors">Limpar Grade</button>
-                                    <button onclick="exportarGradePDF()" class="text-[11px] bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-lg font-semibold border border-rose-200 transition-colors">📄 Baixar PDF</button>
-                                    <button onclick="exportarGradeExcel()" class="text-[11px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-semibold border border-emerald-200 transition-colors">🟢 Baixar Excel</button>
-                                </div>
-                            </div>
-
-                            <div id="gradeContainer" class="space-y-6"></div>
-                        </div>
-                        
-                        <div class="mt-8 pt-4 border-t border-slate-100">
-                            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Espelho de Atribuição (Referência para Validação)</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="listaAtribuicaoBase"></div>
-                        </div>
-
-                        <div class="mt-6 pt-4 text-center text-[10px] text-slate-500 font-medium border-t border-slate-100">
-                            <p>Ciente do(a) Docente: ___________________________________________________ Data: ___/___/2026</p>
-                        </div>
-                    </div>
-                </main>
-            </div>
-
-            <div id="abaDisciplinas" class="hidden space-y-6">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 pb-4">
-                        <div>
-                            <h2 class="text-lg font-bold text-slate-800">Mapa de Professores por Disciplina</h2>
-                            <p class="text-xs text-slate-500">Veja quem leciona cada matéria (inclui Projetos Manuais adicionados).</p>
-                        </div>
-                        <div class="w-full md:w-64">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Filtrar Disciplina</label>
-                            <select id="filterMateriaGeral" onchange="renderizarTabelaDisciplinas()" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold outline-none focus:border-indigo-500 transition-colors">
-                                <option value="Todas">Todas as Disciplinas</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] tracking-wider border-y border-slate-200">
-                                    <th class="p-3 w-1/4">Disciplina / Projeto</th>
-                                    <th class="p-3 w-1/3">Professor(a)</th>
-                                    <th class="p-3 w-1/4">Série / Turma</th>
-                                    <th class="p-3 w-1/6 text-center">Qtd. Aulas</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyDisciplinas" class="divide-y divide-slate-100 text-slate-700">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-        </div>
+  <!-- ABA EXCEL -->
+  <div id="tab-excel" class="panel active">
+    <div class="slabel">Arquivo de atribuição — formato SEDUC (MATERIA PROFESSOR)</div>
+    <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+      <div style="font-size:36px;margin-bottom:8px">📊</div>
+      <div style="font-size:14px;font-weight:500;color:var(--tx)">Clique para selecionar o arquivo Excel</div>
+      <div style="font-size:12px;color:var(--tx2);margin-top:4px">Suporta .xlsx com abas "TARDE 2026" e "MANHA 2026"</div>
+      <div style="font-size:11px;color:var(--tx3);margin-top:8px">Células no formato: <strong>MATERIA PROFESSOR</strong> — ex: <em>PORT LUZIA</em>, <em>MAT ANA ROSA</em></div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
     </div>
+    <div id="fileStatus" style="margin-top:10px"></div>
+  </div>
 
-    <script>
-        // Array global acumulativo
-        let dadosOriginais = [];
-        let turmasDoProfessor = [];
-        let limitesAtribuicao = {}; 
+  <!-- ABA TITULAR -->
+  <div id="tab-titular" class="panel">
+    <div class="slabel">Definir professor titular por matéria/turma</div>
+    <div class="info" id="titInfo" style="display:none"></div>
+    <div id="titEmpty" style="text-align:center;padding:2rem;color:var(--tx2);font-size:13px">
+      ⚠️ Carregue o arquivo Excel primeiro para definir os titulares.
+    </div>
+    <div id="titWrap" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <span style="font-size:12px;color:var(--tx2)" id="titCount"></span>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-primary" onclick="aplicarTitulares()">✅ Aplicar titulares</button>
+          <button class="btn btn-sm" onclick="resetarTitulares()">↺ Resetar</button>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">
+        Para cada matéria em cada turma, escolha qual professor é o <strong>titular</strong>. Quando houver substituto na grade, ele aparecerá destacado. Você pode deixar "Auto" para usar sempre o que aparece no arquivo.
+      </div>
+      <div class="t-wrap">
+        <table class="tit-table">
+          <thead><tr><th>Turma</th><th>Matéria</th><th>Período</th><th>Professores encontrados</th><th>Titular definido</th></tr></thead>
+          <tbody id="titBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-        const diasSemana = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
-        
-        const estruturaHorarios = {
-            "Manhã": [
-                { nome: "1ª Aula", tempo: "07:00 às 07:50", isIntervalo: false },
-                { nome: "2ª Aula", tempo: "07:50 às 08:40", isIntervalo: false },
-                { nome: "3ª Aula", tempo: "08:40 às 09:30", isIntervalo: false },
-                { nome: "Intervalo 1", tempo: "09:30 às 09:50", isIntervalo: true },
-                { nome: "4ª Aula", tempo: "09:30/09:50 às 10:40", isIntervalo: false },
-                { nome: "Intervalo 2", tempo: "10:20 às 10:40", isIntervalo: true },
-                { nome: "5ª Aula", tempo: "10:40 às 11:30", isIntervalo: false },
-                { nome: "6ª Aula", tempo: "11:30 às 12:20", isIntervalo: false }
-            ],
-            "Tarde": [
-                { nome: "1ª Aula", tempo: "13:00 às 13:50", isIntervalo: false },
-                { nome: "2ª Aula", tempo: "13:50 às 14:40", isIntervalo: false },
-                { nome: "Intervalo 1", tempo: "14:40 às 15:00", isIntervalo: true },
-                { nome: "3ª Aula", tempo: "14:40/15:00 às 15:50", isIntervalo: false },
-                { nome: "Intervalo 2", tempo: "15:30 às 15:50", isIntervalo: true },
-                { nome: "4ª Aula", tempo: "15:50 às 16:40", isIntervalo: false },
-                { nome: "5ª Aula", tempo: "16:40 às 17:30", isIntervalo: false },
-                { nome: "6ª Aula", tempo: "17:30 às 18:20", isIntervalo: false }
-            ]
-        };
+  <!-- ABA MANUAL -->
+  <div id="tab-manual" class="panel">
+    <div class="slabel">Cadastro manual de aulas</div>
+    <div class="form-row" style="margin-bottom:10px">
+      <div><label>Professor</label><input type="text" id="m_prof" placeholder="Nome"></div>
+      <div><label>Período</label><select id="m_per"><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>
+      <div><label>Série / Turma</label><input type="text" id="m_serie" placeholder="ex: 1ºA"></div>
+      <div><label>Matéria</label><input type="text" id="m_mat" placeholder="ex: MATEMATICA"></div>
+      <div><label>Dia</label><select id="m_dia"><option>Segunda</option><option>Terça</option><option>Quarta</option><option>Quinta</option><option>Sexta</option></select></div>
+      <div><label>Nº Aula</label><select id="m_aula"><option value="1">1ª</option><option value="2">2ª</option><option value="3">3ª</option><option value="4">4ª</option><option value="5">5ª</option><option value="6">6ª</option></select></div>
+      <div style="display:flex;align-items:flex-end"><button class="btn btn-primary" onclick="addManual()" style="width:100%">+ Adicionar</button></div>
+    </div>
+    <div id="manEmpty" style="text-align:center;padding:1.5rem;color:var(--tx3);font-size:13px">Nenhuma aula cadastrada.</div>
+    <div id="manWrap" style="display:none">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+        <span id="manCount" style="font-size:12px;color:var(--tx2)"></span>
+        <button class="btn btn-sm" style="color:var(--red);border-color:#F09595" onclick="limparManual()">🗑 Limpar</button>
+      </div>
+      <div class="t-wrap"><table class="man-table">
+        <thead><tr><th>Professor</th><th>Período</th><th>Turma</th><th>Matéria</th><th>Dia</th><th>Aula</th><th></th></tr></thead>
+        <tbody id="manBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
 
-        function calcularATPC(qtdAulas) {
-            if(qtdAulas <= 4) return 1;
-            if(qtdAulas <= 15) return 2;
-            if(qtdAulas <= 24) return 3;
-            if(qtdAulas <= 31) return 4;
-            if(qtdAulas >= 32) return 5;
-            return 0;
-        }
+<!-- ===== FILTROS ===== -->
+<div class="card">
+  <div class="slabel">Filtros para geração da grade</div>
+  <div class="filters">
+    <div><label>Professor</label><select id="fProf"><option value="">Todos</option></select></div>
+    <div><label>Período</label><select id="fPer"><option value="">Todos</option><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>
+    <div><label>Turma</label><select id="fTurma"><option value="">Todas</option></select></div>
+    <div><label>Matéria</label><select id="fMat"><option value="">Todas</option></select></div>
+    <div><label>Mostrar</label><select id="fVis">
+      <option value="turma">Por turma (colunas = dias)</option>
+      <option value="prof">Por professor (grade semanal)</option>
+    </select></div>
+  </div>
+</div>
 
-        function atualizarCabecalho() {
-            const escola = document.getElementById('escolaNome').value;
-            document.getElementById('printEscolaNome').innerText = escola ? escola.toUpperCase() : 'ESCOLA ESTADUAL';
-        }
+<!-- ===== AÇÕES ===== -->
+<div class="actions">
+  <button class="btn btn-primary" onclick="gerarGrade()">📋 Gerar grade</button>
+  <button class="btn btn-red" onclick="exportPDF()">📄 Baixar PDF</button>
+  <button class="btn btn-green" onclick="exportXLSX()">📊 Baixar Excel</button>
+</div>
 
-        function limparSistema() {
-            dadosOriginais = [];
-            document.getElementById('uploadStatus').innerHTML = `Clique ou arraste o(s) arquivo(s) CSV/Excel aqui`;
-            document.getElementById('uploadStatus').classList.remove('text-emerald-600');
-            document.getElementById('tabsNav').classList.add('hidden');
-            document.getElementById('tabsContent').classList.add('hidden');
-            document.getElementById('filterProfessor').innerHTML = '<option value="Todos">-- Carregue o arquivo --</option>';
-            document.getElementById('fileUpload').value = ""; 
-        }
+<div id="msgBox"></div>
 
-        function mudarAba(abaDestino) {
-            document.getElementById('abaMontador').classList.add('hidden');
-            document.getElementById('abaDisciplinas').classList.add('hidden');
-            
-            document.getElementById('btnAbaMontador').className = "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
-            document.getElementById('btnAbaDisciplinas').className = "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors";
+<!-- ===== GRADE ===== -->
+<div id="gradeArea">
+  <div id="atpcBox" style="display:none"></div>
+  <div id="gradeTitle" class="grade-title"></div>
+  <div class="card" style="padding:1rem">
+    <div class="t-wrap">
+      <table id="horarioTabela">
+        <thead><tr>
+          <th style="width:100px;text-align:left;padding-left:10px">Horário</th>
+          <th>Segunda</th><th>Terça</th><th>Quarta</th><th>Quinta</th><th>Sexta</th>
+        </tr></thead>
+        <tbody id="tBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
-            if (abaDestino === 'montador') {
-                document.getElementById('abaMontador').classList.remove('hidden');
-                document.getElementById('btnAbaMontador').className = "border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors";
-            } else {
-                document.getElementById('abaDisciplinas').classList.remove('hidden');
-                document.getElementById('btnAbaDisciplinas').className = "border-indigo-500 text-indigo-600 whitespace-nowrap py-3 px-1 border-b-2 font-bold text-sm transition-colors";
-            }
-        }
+<div id="emptySt" class="empty-st">
+  <div style="font-size:40px;margin-bottom:10px">📋</div>
+  <div>Carregue o arquivo Excel ou cadastre aulas manualmente e clique em <strong>Gerar grade</strong>.</div>
+</div>
 
-        document.getElementById('fileUpload').addEventListener('change', function(e) {
-            const files = e.target.files;
-            if (!files.length) return;
-            
-            document.getElementById('uploadStatus').innerHTML = `⏳ Processando arquivos...`;
-            let processados = 0;
+<script>
+// ============================================================
+// ESTADO GLOBAL
+// ============================================================
+let dadosGrade = []; // [{periodo, turma, dia, horario, horarioIndex, materia, professor}]
+let dadosManuais = [];
+let titulares = {}; // key: "TURMA|MATERIA" -> nome do professor titular
+let abaAtiva = 'excel';
 
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
+const DIAS = ['Segunda','Terça','Quarta','Quinta','Sexta'];
+const MAP_DIA = {
+  '2ª':'Segunda','segunda':'Segunda','seg':'Segunda',
+  '3ª':'Terça','terca':'Terça','ter':'Terça',
+  '4ª':'Quarta','quarta':'Quarta','qua':'Quarta',
+  '5ª':'Quinta','quinta':'Quinta','qui':'Quinta',
+  '6ª':'Sexta','sexta':'Sexta','sex':'Sexta','6º':'Sexta'
+};
 
-                reader.onload = function(evt) {
-                    try {
-                        let linhasBrutas = [];
-                        
-                        if (file.name.toLowerCase().endsWith('.csv')) {
-                            const text = evt.target.result;
-                            const lines = text.split(/\r?\n/);
-                            let headerIdx = -1;
-                            
-                            for(let i = 0; i < lines.length; i++) {
-                                if(lines[i].includes('Professor') && lines[i].includes('Turma')) {
-                                    headerIdx = i;
-                                    break;
-                                }
-                            }
-                            
-                            if(headerIdx !== -1) {
-                                const headers = lines[headerIdx].split(';');
-                                for(let i = headerIdx + 1; i < lines.length; i++) {
-                                    if(!lines[i].trim()) continue;
-                                    const cols = lines[i].split(';');
-                                    let obj = {};
-                                    headers.forEach((h, idx) => {
-                                        obj[h.trim()] = cols[idx] ? cols[idx].trim() : '';
-                                    });
-                                    linhasBrutas.push(obj);
-                                }
-                            } else {
-                                throw new Error("Cabeçalho não encontrado no arquivo: " + file.name);
-                            }
-                        } else {
-                            const data = new Uint8Array(evt.target.result);
-                            const workbook = XLSX.read(data, {type: 'array'});
-                            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                            const rawJson = XLSX.utils.sheet_to_json(sheet, {header: 1});
-                            
-                            let headerIdx = 0;
-                            for(let i=0; i<rawJson.length; i++) {
-                                if(rawJson[i] && rawJson[i].includes('Professor') && rawJson[i].includes('Turma')) {
-                                    headerIdx = i;
-                                    break;
-                                }
-                            }
-                            linhasBrutas = XLSX.utils.sheet_to_json(sheet, {range: headerIdx});
-                        }
+const HORARIOS_M = [
+  {n:'1ª aula',t:'07:00–07:50',int:false,idx:1},
+  {n:'2ª aula',t:'07:50–08:40',int:false,idx:2},
+  {n:'3ª aula',t:'08:40–09:30',int:false,idx:3},
+  {n:'Intervalo',t:'09:30–09:50',int:true},
+  {n:'4ª aula',t:'09:50–10:40',int:false,idx:4},
+  {n:'5ª aula',t:'10:40–11:30',int:false,idx:5},
+  {n:'6ª aula',t:'11:30–12:20',int:false,idx:6},
+];
+const HORARIOS_T = [
+  {n:'1ª aula',t:'13:00–13:50',int:false,idx:1},
+  {n:'2ª aula',t:'13:50–14:40',int:false,idx:2},
+  {n:'Intervalo',t:'14:40–15:00',int:true},
+  {n:'3ª aula',t:'15:00–15:50',int:false,idx:3},
+  {n:'4ª aula',t:'15:50–16:40',int:false,idx:4},
+  {n:'5ª aula',t:'16:40–17:30',int:false,idx:5},
+  {n:'6ª aula',t:'17:30–18:20',int:false,idx:6},
+];
 
-                        const novasAulas = linhasBrutas.map(row => ({
-                            Professor: row['Professor'] ? row['Professor'].trim() : 'Não Informado',
-                            Serie: row['Turma'] ? row['Turma'].trim() : 'Não Informado',
-                            Aulas: row['Qtde. Aulas'] ? parseInt(row['Qtde. Aulas']) : 0,
-                            Materia: row['Disciplina'] ? row['Disciplina'].trim() : 'Não Informado'
-                        })).filter(item => item.Professor !== 'Não Informado' && item.Aulas > 0);
+function calcATPC(n){if(n<=4)return 1;if(n<=15)return 2;if(n<=24)return 3;if(n<=31)return 4;return 5}
 
-                        dadosOriginais = dadosOriginais.concat(novasAulas);
+// ============================================================
+// TABS
+// ============================================================
+function mudarAba(aba,el){
+  abaAtiva=aba;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-'+aba).classList.add('active');
+}
 
-                    } catch (err) {
-                        console.error(err);
-                        alert(err.message || `Erro ao ler as colunas do arquivo ${file.name}.`);
-                    }
+// ============================================================
+// PARSER DO EXCEL NO FORMATO SEDUC
+// ============================================================
+document.getElementById('fileInput').addEventListener('change',function(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    try{
+      const arr=new Uint8Array(evt.target.result);
+      const wb=XLSX.read(arr,{type:'array'});
+      dadosGrade=[];
 
-                    processados++;
-                    
-                    if (processados === files.length) {
-                        if (dadosOriginais.length > 0) {
-                            document.getElementById('uploadStatus').innerHTML = `✅ ${dadosOriginais.length} registros acumulados!`;
-                            document.getElementById('uploadStatus').classList.add('text-emerald-600');
-                            
-                            document.getElementById('tabsNav').classList.remove('hidden');
-                            document.getElementById('tabsContent').classList.remove('hidden');
-                            
-                            if (document.getElementById('abaMontador').classList.contains('hidden') && document.getElementById('abaDisciplinas').classList.contains('hidden')) {
-                                mudarAba('montador');
-                            }
+      wb.SheetNames.forEach(sheetName=>{
+        const periodoSheet = sheetName.toUpperCase().includes('MANHA')||sheetName.toUpperCase().includes('MANHÃ') ? 'Manhã' : 'Tarde';
+        const ws=wb.Sheets[sheetName];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+        parsearAba(rows, periodoSheet);
+      });
 
-                            popularFiltrosOpcoes();
-                            popularFiltroMateriasGeral();
-                            renderizarTabelaDisciplinas();
-                            
-                            if (document.getElementById('filterProfessor').value !== "Todos") {
-                                renderizarDashboard();
-                            }
-                        } else {
-                            document.getElementById('uploadStatus').innerHTML = `❌ Nenhum dado válido encontrado.`;
-                            document.getElementById('uploadStatus').classList.remove('text-emerald-600');
-                        }
-                    }
-                };
+      const total=dadosGrade.length;
+      document.getElementById('fileStatus').innerHTML=`<div class="ok">✅ <strong>${file.name}</strong> carregado — ${total} aula(s) encontradas em ${wb.SheetNames.length} aba(s).</div>`;
+      atualizarFiltros();
+      construirTabelaTitulares();
+    } catch(err){
+      document.getElementById('fileStatus').innerHTML=`<div class="err">❌ Erro ao ler o arquivo: ${err.message}</div>`;
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
 
-                if (file.name.toLowerCase().endsWith('.csv')) {
-                    reader.readAsText(file, 'windows-1252');
-                } else {
-                    reader.readAsArrayBuffer(file);
-                }
+function parsearAba(rows, periodoDefault){
+  // Detecta turmas do cabeçalho (linha com "SALAS")
+  let turmas=[], turmasCols=[], splitCol=-1;
+  let diaAtual='', horarioSeq=0;
+
+  // Mapeamento de horário-texto → índice sequencial por dia
+  const horCountPorDia={};
+
+  for(let r=0;r<rows.length;r++){
+    const row=rows[r]; if(!row) continue;
+    const c0=limpStr(row[0]);
+
+    // Cabeçalho de SALAS — captura as turmas e colunas
+    if(c0==='SALAS'){
+      turmas=[]; turmasCols=[];
+      for(let c=0;c<row.length;c++){
+        const v=limpStr(row[c]);
+        if(!v||v==='SALAS') continue;
+        // Detectar coluna divisória (ex: coluna com "SALAS" repetida mais adiante)
+        if(v==='SALAS'&&c>0){splitCol=c;continue}
+        if(isTurma(v)){turmas.push(v);turmasCols.push(c)}
+      }
+      continue;
+    }
+
+    // Linha de dia da semana
+    const diaDetect=detectarDia(c0);
+    if(diaDetect){diaAtual=diaDetect;horarioSeq=0;horCountPorDia[diaAtual]=0;continue}
+
+    // Intervalo — pula mas lê células das turmas do "segundo bloco" da tarde
+    if(c0.includes('INTERVALO')){
+      // No TARDE, após o intervalo vem aulas do bloco 2 (8°-9° anos)
+      // Lemos essa linha como aulas também
+      processarLinhaAula(row,rows,r,turmas,turmasCols,diaAtual,periodoDefault,c0,true);
+      continue;
+    }
+
+    // Linha de aula (começa com horário HH:MM ou "Nº AULA")
+    if(c0&&(c0.match(/^\d{2}:\d{2}/)||c0.match(/^\d+[ºª°]/)||c0.match(/^[1-6]\s*AULA/))){
+      processarLinhaAula(row,rows,r,turmas,turmasCols,diaAtual,periodoDefault,c0,false);
+    }
+  }
+}
+
+function processarLinhaAula(row,rows,r,turmas,turmasCols,diaAtual,periodo,horStr,isIntervalo){
+  if(!diaAtual||!turmas.length) return;
+
+  // Para cada coluna de turma, lê a célula
+  for(let i=0;i<turmasCols.length;i++){
+    const col=turmasCols[i];
+    const celula=limpStr(row[col]);
+    if(!celula) continue;
+    const {materia,professor}=parsearCelula(celula);
+    if(!materia) continue;
+
+    // Determina horário sequencial desta aula neste dia
+    // Usa o texto do horário para mapear
+    const hIdx=mapearHorario(horStr,periodo);
+
+    dadosGrade.push({
+      periodo,
+      turma:turmas[i],
+      dia:diaAtual,
+      horario:horStr,
+      horarioIndex:hIdx,
+      materia,
+      professor
+    });
+  }
+
+  // Também lê o "segundo bloco" da mesma linha (TARDE tem dupla tabela na mesma linha)
+  // Detectamos pelo padrão: há uma segunda coluna "SALAS" ou horário repetido no meio da linha
+  // Buscamos colunas além do primeiro bloco
+  const extra=extrairSegundoBloco(row,rows,r,diaAtual,periodo,horStr,turmas,turmasCols);
+  extra.forEach(e=>dadosGrade.push(e));
+}
+
+function extrairSegundoBloco(row,rows,r,diaAtual,periodo,horStr,turmasPrimeiras,colsPrimeiras){
+  const resultado=[];
+  // No formato SEDUC, o segundo bloco começa após uma coluna vazia (null) depois do primeiro bloco
+  // Detectamos as colunas extras com turmas
+  let encontrouVazia=false;
+  let turmasExtra=[], colsExtra=[];
+
+  // Primeiro, encontrar o cabeçalho de turmas do segundo bloco
+  // (buscamos a linha SALAS mais próxima acima)
+  for(let rb=r-1;rb>=Math.max(0,r-15);rb--){
+    const rr=rows[rb]; if(!rr) continue;
+    const c0=limpStr(rr[0]);
+    const cMeio=rr.find((v,ci)=>ci>0&&v&&limpStr(String(v))==='SALAS');
+    if(cMeio!==undefined){
+      // encontramos linha de cabeçalho com segundo SALAS
+      let passouVazia=false;
+      for(let c=0;c<rr.length;c++){
+        const v=limpStr(rr[c]);
+        if(!v){passouVazia=true;continue}
+        if(passouVazia&&v==='SALAS'){passouVazia=false;continue}
+        if(passouVazia&&isTurma(v)){turmasExtra.push(v);colsExtra.push(c)}
+      }
+      break;
+    }
+    if(c0==='SALAS'||detectarDia(c0)) break;
+  }
+
+  if(!turmasExtra.length) return resultado;
+
+  for(let i=0;i<colsExtra.length;i++){
+    const col=colsExtra[i];
+    const celula=limpStr(row[col]);
+    if(!celula) continue;
+    const {materia,professor}=parsearCelula(celula);
+    if(!materia) continue;
+    // Determina o horário de acordo com a lógica do segundo bloco
+    // No TARDE bloco 2: 8°e 9° anos têm horário diferente (ex: intervalo 14:40-15:30)
+    const hIdx=mapearHorario(horStr,periodo);
+    resultado.push({periodo,turma:turmasExtra[i],dia:diaAtual,horario:horStr,horarioIndex:hIdx,materia,professor});
+  }
+  return resultado;
+}
+
+function mapearHorario(h,periodo){
+  h=limpStr(h);
+  if(periodo==='Manhã'){
+    if(h.startsWith('07:00')||h.includes('1 AULA')||h.match(/^1[ºª]/)) return 1;
+    if(h.startsWith('07:50')||h.match(/2[ºª°]/)) return 2;
+    if(h.startsWith('08:40')||h.match(/3[ºª°]/)) return 3;
+    if(h.startsWith('09:50')||h.match(/4[ºª°]/)) return 4;
+    if(h.startsWith('10:40')||h.match(/5[ºª°]/)) return 5;
+    if(h.startsWith('11:30')||h.match(/6[ºª°]/)) return 6;
+  } else {
+    if(h.startsWith('13:00')||h.includes('1 AULA')) return 1;
+    if(h.startsWith('13:50')) return 2;
+    if(h.startsWith('14:40')||h.startsWith('15:00')) return 3;
+    if(h.startsWith('15:50')) return 4;
+    if(h.startsWith('16:40')) return 5;
+    if(h.startsWith('17:30')) return 6;
+  }
+  return 0;
+}
+
+function parsearCelula(cel){
+  // Formato: "MATERIA PROFESSOR" — o último token separado por espaço é o professor,
+  // mas como o professor pode ter nome composto, separamos matéria do resto
+  // Regra: matéria é a primeira palavra (pode ter ponto), professor é o resto
+  // Casos especiais: "ED FISICA AMANDA" → mat="ED FISICA", prof="AMANDA"
+  //                  "PORT PATRICIA LIMA" → mat="PORT", prof="PATRICIA LIMA"
+  //                  "MAT ANA ROSA" → mat="MAT", prof="ANA ROSA"
+  //                  "ED. FINANCEIRA ANA ROSA" → mat="ED. FINANCEIRA", prof="ANA ROSA"
+
+  // Lista de prefixos de matéria conhecidos (pode ser expandida)
+  const prefMat=['ED FISICA','ED. FISICA','EDUCACAO FISICA','ED FIS','ED. FIS',
+    'ED FINANCEIRA','ED. FINANCEIRA','ED. FINAN','ED FINAN','ED FIN',
+    'MAT APL','APR FILO','APRO GEO','APRO SOCI','APRO M','APR M',
+    'GESTAO FIN','GESTAO OP','GESTAO  DE OP','GESTAO DE OP',
+    'FUNDA. LOG','FUNDA. CARLOS','FUNDA.','ARTES E MÍDIAS',
+    'ARTE','ARTES','CIEN','PORT','MAT','GEO','HIST','INGLES','INGLÊS',
+    'ING','QUIM','QUIMICA','BIO','FISICA','FISI','FIS','FÍS','FÍS.',
+    'REDACAO','REDAÇÃO','RED','TEC','ODEP','ODEM','ODEP','PV',
+    'CARREIRA','PROJETO','INOVA','COMU','MARKETING','ESTOQUE','INTRO',
+    'SOCIO','SOCIA','FILO','LIDE','ATUALIDADES'];
+
+  cel=cel.trim();
+  let matFound='', profFound='';
+
+  // Tentar match com prefixos múltiplas palavras primeiro
+  const sortedPref=[...prefMat].sort((a,b)=>b.length-a.length);
+  for(const pref of sortedPref){
+    if(cel.toUpperCase().startsWith(pref)){
+      matFound=pref.trim();
+      profFound=cel.substring(pref.length).trim();
+      // Remover números soltos
+      profFound=profFound.replace(/^\d+\s*/,'').trim();
+      break;
+    }
+  }
+
+  if(!matFound){
+    // Fallback: primeira palavra = matéria, resto = professor
+    const parts=cel.split(' ');
+    matFound=parts[0]||'';
+    profFound=parts.slice(1).join(' ').trim();
+  }
+
+  return {materia:matFound.toUpperCase(), professor:profFound.trim()};
+}
+
+function detectarDia(str){
+  if(!str) return '';
+  str=str.trim().toLowerCase().replace(/[ªº°]/g,'');
+  for(const k of Object.keys(MAP_DIA)){
+    if(str.startsWith(k.toLowerCase().replace(/[ªº°]/g,''))||str===k.toLowerCase())
+      return MAP_DIA[k];
+  }
+  // "2 feira" etc
+  if(str.startsWith('2')&&str.includes('feira')) return 'Segunda';
+  if(str.startsWith('3')&&str.includes('feira')) return 'Terça';
+  if(str.startsWith('4')&&str.includes('feira')) return 'Quarta';
+  if(str.startsWith('5')&&str.includes('feira')) return 'Quinta';
+  if(str.startsWith('6')&&str.includes('feira')) return 'Sexta';
+  return '';
+}
+
+function isTurma(str){
+  if(!str) return false;
+  const s=str.toUpperCase();
+  return s.match(/\d+[ºª°]\s*(ANO|SERIE|SÉRIE|S[ÉE]RIE)/)!=null||
+         s.match(/[1-9][ºª°]\s*[A-Z]/)!=null||
+         s.match(/\d+\s*(ANO|SÉRIE|SERIE|EM)\s*[A-Z]/)!=null;
+}
+
+function limpStr(v){
+  if(v===null||v===undefined) return '';
+  return String(v).trim().toUpperCase()
+    .replace(/\u00A0/g,' ').replace(/\s+/g,' ');
+}
+
+// ============================================================
+// FILTROS
+// ============================================================
+function atualizarFiltros(){
+  const dados=getDados();
+  const profs=new Set(), turmas=new Set(), mats=new Set();
+  dados.forEach(r=>{
+    if(r.professor) profs.add(r.professor);
+    if(r.turma) turmas.add(r.turma);
+    if(r.materia) mats.add(r.materia);
+  });
+  fillSel('fProf',profs);
+  fillSel('fTurma',turmas);
+  fillSel('fMat',mats);
+}
+
+function fillSel(id,set){
+  const el=document.getElementById(id);
+  const cur=el.value;
+  el.innerHTML='<option value="">Todos</option>';
+  Array.from(set).sort().forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
+  if(cur) el.value=cur;
+}
+
+function getDados(){
+  if(abaAtiva==='manual') return dadosManuais;
+  return dadosGrade;
+}
+
+// ============================================================
+// TABELA DE TITULARES
+// ============================================================
+function construirTabelaTitulares(){
+  const dados=dadosGrade;
+  if(!dados.length){
+    document.getElementById('titEmpty').style.display='block';
+    document.getElementById('titWrap').style.display='none';
+    return;
+  }
+
+  // Agrupar por turma+matéria → conjunto de professores
+  const grupo={};
+  dados.forEach(r=>{
+    const k=`${r.turma}||${r.materia}`;
+    if(!grupo[k]) grupo[k]={turma:r.turma,materia:r.materia,periodo:r.periodo,profs:new Set()};
+    if(r.professor) grupo[k].profs.add(r.professor);
+  });
+
+  const body=document.getElementById('titBody');
+  body.innerHTML='';
+  const chaves=Object.keys(grupo).sort();
+  document.getElementById('titCount').textContent=`${chaves.length} combinações turma+matéria`;
+
+  chaves.forEach(k=>{
+    const g=grupo[k];
+    const profsArr=Array.from(g.profs);
+    const badgeCls=g.periodo==='Manhã'?'badge-m':'badge-t';
+    const curTit=titulares[k]||'';
+    const opts=profsArr.map(p=>`<option value="${p}" ${curTit===p?'selected':''}>${p}</option>`).join('');
+    const multi=profsArr.length>1?`<span class="tag-new">VÁRIOS</span>`:'';
+
+    body.innerHTML+=`<tr>
+      <td><strong>${g.turma}</strong></td>
+      <td>${g.materia} ${multi}</td>
+      <td><span class="badge ${badgeCls}">${g.periodo}</span></td>
+      <td style="font-size:11px;color:var(--tx2)">${profsArr.join(', ')}</td>
+      <td><select onchange="setTitular('${k}',this.value)">
+        <option value="">— Auto (mais recente) —</option>
+        ${opts}
+      </select></td>
+    </tr>`;
+  });
+
+  document.getElementById('titEmpty').style.display='none';
+  document.getElementById('titWrap').style.display='block';
+  document.getElementById('titInfo').textContent=`${chaves.length} combinações encontradas. Onde há "VÁRIOS", mais de um professor aparece na grade — defina o titular.`;
+  document.getElementById('titInfo').style.display='block';
+}
+
+function setTitular(k,v){
+  if(v) titulares[k]=v; else delete titulares[k];
+}
+
+function aplicarTitulares(){
+  // Selects já atualizados via onchange; apenas feedback
+  const qtd=Object.keys(titulares).length;
+  document.getElementById('msgBox').innerHTML=`<div class="ok">✅ ${qtd} titular(es) definido(s). Clique em <strong>Gerar grade</strong> para ver o resultado.</div>`;
+  setTimeout(()=>document.getElementById('msgBox').innerHTML='',4000);
+}
+
+function resetarTitulares(){
+  titulares={};
+  construirTabelaTitulares();
+  document.getElementById('msgBox').innerHTML=`<div class="info">↺ Titulares resetados.</div>`;
+  setTimeout(()=>document.getElementById('msgBox').innerHTML='',3000);
+}
+
+// ============================================================
+// MANUAL
+// ============================================================
+function addManual(){
+  const prof=document.getElementById('m_prof').value.trim();
+  const per=document.getElementById('m_per').value;
+  const serie=document.getElementById('m_serie').value.trim();
+  const mat=document.getElementById('m_mat').value.trim().toUpperCase();
+  const dia=document.getElementById('m_dia').value;
+  const aula=document.getElementById('m_aula').value;
+  if(!prof||!serie||!mat){
+    document.getElementById('msgBox').innerHTML='<div class="err">⚠️ Preencha Professor, Série e Matéria.</div>';
+    setTimeout(()=>document.getElementById('msgBox').innerHTML='',3000);
+    return;
+  }
+  dadosManuais.push({periodo:per,turma:serie,dia,horario:'',horarioIndex:parseInt(aula),materia:mat,professor:prof});
+  renderManual();
+  atualizarFiltros();
+  document.getElementById('m_serie').value='';
+  document.getElementById('m_mat').value='';
+}
+
+function removerManual(i){dadosManuais.splice(i,1);renderManual();atualizarFiltros()}
+function limparManual(){dadosManuais=[];renderManual();atualizarFiltros()}
+
+function renderManual(){
+  const wrap=document.getElementById('manWrap');
+  const empty=document.getElementById('manEmpty');
+  const body=document.getElementById('manBody');
+  if(!dadosManuais.length){wrap.style.display='none';empty.style.display='block';return}
+  wrap.style.display='block';empty.style.display='none';
+  document.getElementById('manCount').textContent=`${dadosManuais.length} aula(s)`;
+  body.innerHTML='';
+  dadosManuais.forEach((r,i)=>{
+    const bc=r.periodo==='Manhã'?'badge-m':'badge-t';
+    body.innerHTML+=`<tr>
+      <td>${r.professor}</td>
+      <td><span class="badge ${bc}">${r.periodo}</span></td>
+      <td>${r.turma}</td>
+      <td>${r.materia}</td>
+      <td>${r.dia}</td>
+      <td>${r.horarioIndex}ª</td>
+      <td><button onclick="removerManual(${i})" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:15px">✕</button></td>
+    </tr>`;
+  });
+}
+
+// ============================================================
+// GERAR GRADE
+// ============================================================
+function gerarGrade(){
+  const dados=getDados();
+  if(!dados.length){
+    document.getElementById('msgBox').innerHTML='<div class="err">⚠️ Sem dados. Carregue o Excel ou cadastre manualmente.</div>';
+    return;
+  }
+  document.getElementById('msgBox').innerHTML='';
+
+  const fProf=document.getElementById('fProf').value;
+  const fPer=document.getElementById('fPer').value;
+  const fTurma=document.getElementById('fTurma').value;
+  const fMat=document.getElementById('fMat').value;
+  const fVis=document.getElementById('fVis').value;
+
+  let filtrados=dados.filter(r=>
+    (!fProf||r.professor===fProf)&&
+    (!fPer||normP(r.periodo)===normP(fPer))&&
+    (!fTurma||r.turma===fTurma)&&
+    (!fMat||r.materia===fMat)
+  );
+
+  // Aplicar titulares: se há titular definido, priorizar aulas desse professor
+  // Se o professor da aula ≠ titular, marca como substituto
+  filtrados=filtrados.map(r=>{
+    const k=`${r.turma}||${r.materia}`;
+    const tit=titulares[k];
+    if(tit&&r.professor!==tit) return {...r,substituto:true,titular:tit};
+    return {...r,substituto:false};
+  });
+
+  const body=document.getElementById('tBody');
+  body.innerHTML='';
+
+  // Título
+  let titulo='Grade de horários';
+  if(fProf) titulo=`Grade — Prof. ${fProf}`;
+  else if(fTurma) titulo=`Grade — Turma ${fTurma}`;
+  document.getElementById('gradeTitle').textContent=titulo;
+
+  // ATPC
+  if(fProf){
+    const totalProf=dados.filter(r=>r.professor===fProf).length;
+    const atpc=calcATPC(totalProf);
+    document.getElementById('atpcBox').innerHTML=
+      `<div class="atpc-box">📊 <strong>ATPC:</strong> Prof. <strong>${fProf}</strong> possui <strong>${totalProf} aula(s)</strong> → <strong>${atpc} ATPC(s) coletiva(s)/semana</strong> (Res. SEDUC 105/2024). <em style="font-size:11px">*Salas regulares</em></div>`;
+    document.getElementById('atpcBox').style.display='block';
+  } else {
+    document.getElementById('atpcBox').style.display='none';
+  }
+
+  const periodos=fPer?[fPer]:['Manhã','Tarde'];
+
+  periodos.forEach(per=>{
+    const hlist=per==='Manhã'?HORARIOS_M:HORARIOS_T;
+    const aulasP=filtrados.filter(r=>normP(r.periodo)===normP(per));
+    if(!aulasP.length) return;
+
+    // Linha período
+    const trP=document.createElement('tr');
+    trP.innerHTML=`<td colspan="6" class="td-per">${per}</td>`;
+    body.appendChild(trP);
+
+    hlist.forEach(h=>{
+      const tr=document.createElement('tr');
+      if(h.int){
+        tr.innerHTML=`<td class="td-h"><span class="h-nome">${h.n}</span><br><span class="h-tempo">${h.t}</span></td><td colspan="5" class="td-int">— intervalo —</td>`;
+      } else {
+        let html=`<td class="td-h"><span class="h-nome">${h.n}</span><br><span class="h-tempo">${h.t}</span></td>`;
+        DIAS.forEach(dia=>{
+          // Buscar aulas desse horário+dia+período
+          const matches=aulasP.filter(r=>r.dia===dia&&r.horarioIndex===h.idx);
+
+          if(!matches.length){
+            html+=`<td class="td-vazio">·</td>`;
+          } else {
+            // Agrupar por turma (pode ter múltiplas turmas no mesmo slot quando filtro = professor)
+            html+=`<td class="td-aula">`;
+            matches.forEach(a=>{
+              const subStyle=a.substituto?'background:#fff3cd;border-radius:4px;padding:2px 4px;':'';
+              html+=`<div style="${subStyle}margin:1px 0">`;
+              if(fProf||fTurma){
+                // Mostra matéria + turma
+                if(!fTurma) html+=`<div class="aula-mat">${a.turma}</div>`;
+                html+=`<div class="aula-prof">${a.materia}</div>`;
+                if(a.substituto) html+=`<div class="aula-sub">Titular: ${a.titular}</div>`;
+              } else {
+                html+=`<div class="aula-mat">${a.turma}</div>`;
+                html+=`<div class="aula-prof">${a.materia}</div>`;
+                html+=`<div class="aula-sub">${a.professor}</div>`;
+                if(a.substituto) html+=`<div style="font-size:9px;color:orange">sub p/ ${a.titular}</div>`;
+              }
+              html+=`</div>`;
             });
+            html+=`</td>`;
+          }
         });
+        tr.innerHTML=html;
+      }
+      body.appendChild(tr);
+    });
+  });
 
-        function adicionarAulaManual() {
-            const prof = document.getElementById('filterProfessor').value;
-            if(prof === "Todos") return alert("Selecione um professor primeiro!");
-            
-            const materia = document.getElementById('manualMateria').value.trim();
-            const serie = document.getElementById('manualSerie').value.trim();
-            const aulas = parseInt(document.getElementById('manualAulas').value);
-            
-            if(!materia || !serie || !aulas || isNaN(aulas)) {
-                return alert("Preencha corretamente a Disciplina, a Série e a Quantidade de Aulas.");
-            }
+  document.getElementById('gradeArea').style.display='block';
+  document.getElementById('emptySt').style.display='none';
+}
 
-            dadosOriginais.push({
-                Professor: prof,
-                Serie: serie,
-                Aulas: aulas,
-                Materia: materia
-            });
+function normP(s){return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
 
-            document.getElementById('manualMateria').value = '';
-            document.getElementById('manualSerie').value = '';
-            document.getElementById('manualAulas').value = '';
+// ============================================================
+// EXPORTAR
+// ============================================================
+function exportPDF(){
+  const el=document.getElementById('gradeArea');
+  if(el.style.display==='none'){alert('Gere a grade primeiro.');return}
+  html2pdf().set({
+    margin:.4,filename:'horario-escolar-2026.pdf',
+    image:{type:'jpeg',quality:.98},
+    html2canvas:{scale:2},
+    jsPDF:{unit:'in',format:'a4',orientation:'landscape'}
+  }).from(el).save();
+}
 
-            alert("Projeto / Aula Manual adicionado com sucesso à carga do professor!");
-            
-            popularFiltroMateriasGeral();
-            renderizarTabelaDisciplinas();
-            renderizarDashboard(); 
-        }
-
-        function popularFiltrosOpcoes() {
-            const professores = new Set();
-            dadosOriginais.forEach(i => professores.add(i.Professor));
-
-            const selProf = document.getElementById('filterProfessor');
-            const valorAtual = selProf.value;
-            
-            selProf.innerHTML = '<option value="Todos">-- Selecione um Docente --</option>';
-            Array.from(professores).sort().forEach(p => {
-                selProf.innerHTML += `<option value="${p}">${p}</option>`;
-            });
-
-            if(Array.from(professores).includes(valorAtual)) {
-                selProf.value = valorAtual;
-            }
-        }
-
-        function popularFiltroMateriasGeral() {
-            const materias = new Set();
-            dadosOriginais.forEach(i => materias.add(i.Materia));
-
-            const selMat = document.getElementById('filterMateriaGeral');
-            const valorAtual = selMat.value;
-
-            selMat.innerHTML = '<option value="Todas">Todas as Disciplinas / Projetos</option>';
-            Array.from(materias).sort().forEach(m => {
-                selMat.innerHTML += `<option value="${m}">${m}</option>`;
-            });
-
-            if(Array.from(materias).includes(valorAtual)) {
-                selMat.value = valorAtual;
-            }
-        }
-
-        function renderizarTabelaDisciplinas() {
-            const matFiltrada = document.getElementById('filterMateriaGeral').value;
-            const tbody = document.getElementById('tbodyDisciplinas');
-            tbody.innerHTML = '';
-
-            const mapa = {};
-            dadosOriginais.forEach(item => {
-                if (matFiltrada !== "Todas" && item.Materia !== matFiltrada) return;
-                
-                if (!mapa[item.Materia]) mapa[item.Materia] = [];
-                mapa[item.Materia].push(item);
-            });
-
-            Object.keys(mapa).sort().forEach(mat => {
-                const itensMat = mapa[mat].sort((a,b) => a.Professor.localeCompare(b.Professor));
-                
-                itensMat.forEach((item, index) => {
-                    const exibeMateria = (index === 0) 
-                        ? `<td class="p-3 font-bold text-indigo-700 bg-indigo-50/30 border-r border-slate-100" rowspan="${itensMat.length}">${mat}</td>` 
-                        : '';
-
-                    tbody.innerHTML += `
-                        <tr class="hover:bg-slate-50 transition-colors">
-                            ${exibeMateria}
-                            <td class="p-3 font-medium text-slate-700">${item.Professor}</td>
-                            <td class="p-3 text-slate-600">${item.Serie}</td>
-                            <td class="p-3 text-center font-semibold text-slate-600">${item.Aulas}</td>
-                        </tr>
-                    `;
-                });
-            });
-        }
-
-        function renderizarDashboard() {
-            const prof = document.getElementById('filterProfessor').value;
-            atualizarCabecalho();
-
-            if(prof === "Todos") {
-                document.getElementById('emptyState').classList.remove('hidden');
-                document.getElementById('dashboardContent').classList.add('hidden');
-                return;
-            }
-
-            document.getElementById('emptyState').classList.add('hidden');
-            document.getElementById('dashboardContent').classList.remove('hidden');
-            
-            const aulasProf = dadosOriginais.filter(i => i.Professor === prof);
-            
-            let totalAulas = 0;
-            turmasDoProfessor = []; 
-            limitesAtribuicao = {};
-            
-            const listaAtribuicaoBase = document.getElementById('listaAtribuicaoBase');
-            listaAtribuicaoBase.innerHTML = '';
-
-            aulasProf.forEach(a => {
-                totalAulas += a.Aulas;
-                const optName = `${a.Serie} - ${a.Materia}`;
-                
-                if(!turmasDoProfessor.includes(optName)) {
-                    turmasDoProfessor.push(optName);
-                }
-                
-                limitesAtribuicao[optName] = (limitesAtribuicao[optName] || 0) + a.Aulas;
-            });
-
-            turmasDoProfessor.sort().forEach(optName => {
-                const parts = optName.split(' - ');
-                const serie = parts[0];
-                const mat = parts.slice(1).join(' - ');
-                const maxAulas = limitesAtribuicao[optName];
-
-                listaAtribuicaoBase.innerHTML += `
-                    <div class="bg-slate-50 border border-slate-200 rounded p-2 text-center text-[10px]">
-                        <span class="font-bold text-slate-700 block">${serie}</span>
-                        <span class="text-indigo-600 font-semibold block truncate">${mat}</span>
-                        <span class="text-slate-500">${maxAulas} Aulas permitidas</span>
-                    </div>
-                `;
-            });
-
-            document.getElementById('printNomeProf').innerText = prof;
-            document.getElementById('printAulas').innerText = `Carga Atribuída: ${totalAulas} Aulas`;
-            document.getElementById('printATPC').innerText = `ATPCs Devidas: ${calcularATPC(totalAulas)}`;
-
-            gerarTabelasInterativas();
-        }
-
-        function gerarTabelasInterativas() {
-            const container = document.getElementById('gradeContainer');
-            container.innerHTML = '';
-
-            let optionsHTML = `<option value="">- Livre -</option>`;
-            optionsHTML += `<option value="☕ Intervalo" class="font-bold text-amber-600">☕ Intervalo</option>`;
-            optionsHTML += `<option value="ATPC (Escola)" class="font-bold text-indigo-600">📌 ATPC (Escola)</option>`;
-            optionsHTML += `<option value="Janela / Vago">Janela / Vago</option>`;
-            
-            turmasDoProfessor.sort().forEach(t => {
-                optionsHTML += `<option value="${t}">${t}</option>`;
-            });
-
-            ["Manhã", "Tarde"].forEach(turno => {
-                let html = `
-                <div class="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                    <table class="w-full text-xs text-center border-collapse" id="tabela-${turno}">
-                        <thead>
-                            <tr class="bg-slate-800 text-white font-semibold text-[10px] uppercase tracking-wider">
-                                <th class="p-2 w-[12%]">${turno}</th>
-                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Segunda</th>
-                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Terça</th>
-                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Quarta</th>
-                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Quinta</th>
-                                <th class="p-2 border-l border-slate-700 w-[17.6%]">Sexta</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100 text-slate-700 bg-white">
-                `;
-
-                estruturaHorarios[turno].forEach((linha, idx) => {
-                    let rowClass = linha.isIntervalo ? "bg-amber-50/20" : "bg-white";
-                    let tdClass = linha.isIntervalo ? "bg-amber-50/60" : "bg-slate-50";
-                    let textClass = linha.isIntervalo ? "text-amber-600" : "text-indigo-600";
-
-                    html += `<tr class="${rowClass}">
-                        <td class="p-2 font-semibold text-[10px] text-slate-700 border-r border-slate-100 ${tdClass}">
-                            ${linha.nome}<br><span class="text-[9px] ${textClass} font-medium">${linha.tempo}</span>
-                        </td>`;
-                    
-                    for(let i=0; i<5; i++) {
-                        html += `
-                            <td class="p-1.5 border-r border-slate-100 align-middle">
-                                <div class="relative w-full">
-                                    <select data-dia="${diasSemana[i]}" class="interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700">
-                                        ${optionsHTML}
-                                    </select>
-                                    <div class="print-value hidden font-bold text-slate-800 text-[10px] md:text-xs"></div>
-                                </div>
-                            </td>
-                        `;
-                    }
-                    html += `</tr>`;
-                });
-
-                html += `</tbody></table></div>`;
-                container.innerHTML += html;
-            });
-
-            document.querySelectorAll('.interactive-select').forEach(sel => {
-                
-                sel.addEventListener('focus', function() {
-                    this.dataset.prev = this.value;
-                });
-
-                sel.addEventListener('change', function() {
-                    const newValue = this.value;
-                    const dia = this.dataset.dia;
-                    const isAcumulo = document.getElementById('temAcumulo').value === 'sim';
-                    const limiteDiario = isAcumulo ? 14 : 10;
-
-                    if (newValue && newValue !== "☕ Intervalo" && newValue !== "Janela / Vago" && newValue !== "ATPC (Escola)") {
-                        let totalAtribuidoGrade = 0;
-                        document.querySelectorAll('.interactive-select').forEach(s => {
-                            if(s.value === newValue) totalAtribuidoGrade++;
-                        });
-
-                        if (totalAtribuidoGrade > limitesAtribuicao[newValue]) {
-                            alert(`BLOQUEIO DE ATRIBUIÇÃO:\nO docente só possui ${limitesAtribuicao[newValue]} aula(s) atribuídas para ${newValue}.\nVocê não pode inserir mais do que o permitido.`);
-                            this.value = this.dataset.prev;
-                            return; 
-                        }
-                    }
-
-                    if (newValue && newValue !== "☕ Intervalo" && newValue !== "Janela / Vago") {
-                        let totalNoDia = 0;
-                        document.querySelectorAll(`.interactive-select[data-dia="${dia}"]`).forEach(s => {
-                            if(s.value && s.value !== "☕ Intervalo" && s.value !== "Janela / Vago") {
-                                totalNoDia++;
-                            }
-                        });
-
-                        if (totalNoDia > limiteDiario) {
-                            alert(`LIMITE DIÁRIO EXCEDIDO:\nProfessores ${isAcumulo ? "COM" : "SEM"} acúmulo podem ter no máximo ${limiteDiario} aulas/ATPC por dia.\nA grade de ${dia} já está cheia.`);
-                            this.value = this.dataset.prev;
-                            return; 
-                        }
-                    }
-
-                    this.dataset.prev = newValue;
-
-                    const printDiv = this.nextElementSibling;
-                    printDiv.innerText = this.value;
-                    
-                    if(this.value.includes("ATPC")) {
-                        this.classList.add("bg-indigo-50", "text-indigo-700", "border-indigo-300");
-                        printDiv.classList.add("text-indigo-700");
-                    } else if (this.value.includes("Intervalo")) {
-                        this.classList.add("bg-amber-50", "text-amber-700", "border-amber-300");
-                        printDiv.classList.add("text-amber-700");
-                    } else if(this.value) {
-                        this.classList.add("bg-emerald-50", "border-emerald-200");
-                        this.classList.remove("bg-indigo-50", "text-indigo-700", "border-indigo-300", "bg-amber-50", "text-amber-700", "border-amber-300");
-                        printDiv.classList.remove("text-indigo-700", "text-amber-700");
-                    } else {
-                        this.className = "interactive-select w-full p-1.5 text-[10px] md:text-xs bg-transparent border border-slate-200 rounded outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 no-print transition-colors font-medium text-slate-700";
-                    }
-                });
-            });
-        }
-
-        function limparGrade() {
-            if(confirm("Tem certeza que deseja apagar toda a grade montada?")) {
-                document.querySelectorAll('.interactive-select').forEach(sel => {
-                    sel.value = "";
-                    sel.dispatchEvent(new Event('change'));
-                });
-            }
-        }
-
-        function prepararParaImpressao() {
-            const area = document.getElementById('exportableArea');
-            area.classList.add('pdf-compact'); 
-            
-            document.querySelectorAll('.interactive-select').forEach(sel => {
-                const printDiv = sel.nextElementSibling;
-                printDiv.innerText = sel.value || "-";
-                sel.classList.add('hidden');
-                printDiv.classList.remove('hidden');
-            });
-        }
-
-        function restaurarAposImpressao() {
-            const area = document.getElementById('exportableArea');
-            area.classList.remove('pdf-compact'); 
-            
-            document.querySelectorAll('.interactive-select').forEach(sel => {
-                const printDiv = sel.nextElementSibling;
-                sel.classList.remove('hidden');
-                printDiv.classList.add('hidden');
-            });
-        }
-
-        function exportarGradePDF() {
-            const prof = document.getElementById('printNomeProf').innerText;
-            const element = document.getElementById('exportableArea');
-            
-            prepararParaImpressao();
-
-            const opt = {
-                margin:       [0.1, 0.2, 0.2, 0.2], 
-                filename:     `Horario_Individual_${prof.replace(/ /g, '_')}_2026.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' } 
-            };
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                restaurarAposImpressao();
-            });
-        }
-
-        function exportarGradeExcel() {
-            const prof = document.getElementById('printNomeProf').innerText;
-            const escola = document.getElementById('printEscolaNome').innerText;
-            
-            let matriz = [
-                [`HORÁRIO INDIVIDUAL - ${prof} - ${escola}`],
-                [`Ano Letivo: 2026`],
-                []
-            ];
-
-            ["Manhã", "Tarde"].forEach(turno => {
-                matriz.push([turno.toUpperCase(), "Segunda", "Terça", "Quarta", "Quinta", "Sexta"]);
-                
-                let tbody = document.querySelector(`#tabela-${turno} tbody`);
-                let rows = tbody.querySelectorAll('tr');
-                
-                rows.forEach(tr => {
-                    let cols = tr.querySelectorAll('td');
-                    let linhaArr = [];
-                    
-                    let horarioTexto = cols[0].innerText.replace(/\n/g, ' '); 
-                    linhaArr.push(horarioTexto);
-
-                    for(let i=1; i<=5; i++) {
-                        let select = cols[i].querySelector('select');
-                        linhaArr.push(select && select.value ? select.value : "-");
-                    }
-                    
-                    matriz.push(linhaArr);
-                });
-                matriz.push([]); 
-            });
-
-            let ws = XLSX.utils.aoa_to_sheet(matriz);
-            ws['!cols'] = [{wch: 22}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}];
-
-            let wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Horário Individual");
-            XLSX.writeFile(wb, `Horario_${prof.replace(/ /g, '_')}.xlsx`);
-        }
-    </script>
+function exportXLSX(){
+  const el=document.getElementById('gradeArea');
+  if(el.style.display==='none'){alert('Gere a grade primeiro.');return}
+  const ws=XLSX.utils.table_to_sheet(document.getElementById('horarioTabela'));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Horário');
+  XLSX.writeFile(wb,'Horario-Escolar-2026.xlsx');
+}
+</script>
 </body>
 </html>
