@@ -2,247 +2,225 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Horário Escolar Completo</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Horários Escolares 2026</title>
+
+<!-- ✅ CORRIGIDO -->
+https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-body{font-family:Arial;background:#f5f7fa;padding:20px}
-.tabs{display:flex;margin-bottom:10px}
-.tab{padding:10px 20px;background:#ddd;margin-right:4px;cursor:pointer}
+body{font-family:Arial;background:#f5f5f5;padding:20px}
+.tabs{display:flex;gap:5px;margin-bottom:10px}
+.tab{padding:10px;background:#ddd;cursor:pointer}
 .tab.active{background:#185FA5;color:#fff}
 .panel{display:none}
 .panel.active{display:block}
-table{border-collapse:collapse;width:100%;margin-top:15px}
+table{border-collapse:collapse;width:100%;margin-top:10px}
 th,td{border:1px solid #ccc;padding:6px;text-align:center}
-th{background:#eee}
 </style>
 </head>
 
 <body>
 
-<h2>📅 Sistema Completo de Horário Escolar</h2>
+<h2>📅 Horário Escolar</h2>
 
 <div class="tabs">
-  <div class="tab active" onclick="mudarAba('import')">📂 Importar</div>
-  <div class="tab" onclick="mudarAba('turma')">🏫 Por Turma</div>
-  <div class="tab" onclick="mudarAba('prof')">👩‍🏫 Por Professor</div>
+<div class="tab active" onclick="trocar('excel',this)">Importar</div>
+<div class="tab" onclick="trocar('grade',this)">Grade</div>
 </div>
 
-<!-- IMPORT -->
-<div id="import" class="panel active">
-  <input type="file" id="fileInput" accept=".csv,.xlsx">
-  <br><br>
-  <button onclick="gerar()">Gerar horários</button>
+<div id="excel" class="panel active">
+<input type="file" id="fileInput">
 </div>
 
-<!-- TURMA -->
-<div id="turma" class="panel">
-  <div id="saidaTurma"></div>
-</div>
-
-<!-- PROFESSOR -->
-<div id="prof" class="panel">
-  <div id="saidaProf"></div>
+<div id="grade" class="panel">
+<button onclick="gerar()">Gerar Grade</button>
+<div id="saida"></div>
 </div>
 
 <script>
-let dados = [];
-let gradeTurma = {};
-let gradeProf = {};
+let dados=[];
 
-const dias = ["Segunda","Terça","Quarta","Quinta","Sexta"];
-const aulas = 6;
+const dias=["Segunda","Terça","Quarta","Quinta","Sexta"];
+const aulas=6;
 
-// ========================
-// TROCAR ABA
-// ========================
-function mudarAba(id){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-
-  event.target.classList.add('active');
-  document.getElementById(id).classList.add('active');
+// ================== TROCA ABA ==================
+function trocar(id,el){
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+ el.classList.add('active');
+ document.getElementById(id).classList.add('active');
 }
 
-// ========================
-// LEITURA
-// ========================
+// ================== LEITURA EXCEL ==================
 document.getElementById('fileInput').addEventListener('change',function(e){
-  const file = e.target.files[0];
-  if(!file)return;
 
-  if(file.name.endsWith('.csv')) lerCSV(file);
-  else lerExcel(file);
+ const file=e.target.files[0];
+ if(!file) return;
+
+ const reader=new FileReader();
+ reader.onload=function(evt){
+
+   const wb=XLSX.read(new Uint8Array(evt.target.result),{type:'array'});
+   dados=[];
+
+   wb.SheetNames.forEach(nome=>{
+     const ws=wb.Sheets[nome];
+     const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+
+     const periodo=nome.toUpperCase().includes("MANHA")?"Manhã":"Tarde";
+
+     parsearAba(rows,periodo);
+   });
+
+   alert("✅ Arquivo carregado: "+dados.length+" aulas");
+
+ };
+
+ reader.readAsArrayBuffer(file);
+
 });
 
-// CSV
-function lerCSV(file){
-  const reader = new FileReader();
-  reader.onload = function(e){
+// ================== PARSER NOVO (FUNCIONA MESMO) ==================
+function parsearAba(rows, periodo){
 
-    const texto = e.target.result;
-    const linhas = texto.split('\n').map(l=>l.split(';'));
+ let turmas=[];
+ let colTurmas=[];
 
-    linhas.shift();
-    linhas.shift();
+ for(let r=0;r<rows.length;r++){
 
-    dados = linhas.map(l=>{
-      if(l.length<11) return null;
+   const row=(rows[r]||[]).map(v=>limpar(v));
 
-      const turma = l[8];
-      const disc = l[10];
-      const prof = l[0];
-      const aulasQtd = parseInt(l[9])||1;
+   // detectar linha SALAS
+   if(row.includes("SALAS")){
+     turmas=[];
+     colTurmas=[];
 
-      if(!turma||!disc)return null;
+     row.forEach((cell,c)=>{
+       if(isTurma(cell)){
+         turmas.push(cell);
+         colTurmas.push(c);
+       }
+     });
+     continue;
+   }
 
-      const periodo = turma.includes("MANHA")?"Manhã":"Tarde";
+   // detectar dia
+   const dia=detectarDia(row[0]);
+   if(!dia) continue;
 
-      return {turma,disc,prof,periodo,aulas:aulasQtd};
-    }).filter(x=>x);
+   // ler linhas pra baixo
+   for(let rr=r+1; rr<rows.length; rr++){
 
-    alert("✅ CSV carregado");
-  };
+     const linha=(rows[rr]||[]).map(v=>limpar(v));
+     const texto=linha[0];
 
-  reader.readAsText(file,'utf-8');
+     if(detectarDia(texto)) break;
+
+     const hIdx=mapHorario(texto);
+     if(!hIdx) continue;
+
+     colTurmas.forEach((col,i)=>{
+
+       const valor=linha[col];
+       if(!valor) return;
+
+       const {mat,prof}=parseCelula(valor);
+       if(!mat) return;
+
+       dados.push({
+         periodo,
+         turma:turmas[i],
+         dia,
+         aula:hIdx,
+         materia:mat,
+         professor:prof
+       });
+
+     });
+   }
+ }
 }
 
-// Excel
-function lerExcel(file){
-  const reader = new FileReader();
-  reader.onload = function(e){
-    const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-    const ws = wb.Sheets[wb.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(ws);
-
-    dados = rows.map(r=>({
-      turma:r.Turma,
-      disc:r.Disciplina,
-      prof:r.Professor,
-      periodo:r.Turma.includes("MANHA")?"Manhã":"Tarde",
-      aulas:r["Qtde. Aulas"]||1
-    }));
-
-    alert("✅ Excel carregado");
-  };
-  reader.readAsArrayBuffer(file);
+// ================== FUNÇÕES AUX ==================
+function limpar(v){
+ if(!v) return "";
+ return String(v).trim().toUpperCase();
 }
 
-// ========================
-// GERAR
-// ========================
+function detectarDia(txt){
+ if(!txt) return "";
+ if(txt.includes("2")) return "Segunda";
+ if(txt.includes("3")) return "Terça";
+ if(txt.includes("4")) return "Quarta";
+ if(txt.includes("5")) return "Quinta";
+ if(txt.includes("6")) return "Sexta";
+ return "";
+}
+
+function mapHorario(txt){
+ if(!txt) return 0;
+ if(txt.includes("1")) return 1;
+ if(txt.includes("2")) return 2;
+ if(txt.includes("3")) return 3;
+ if(txt.includes("4")) return 4;
+ if(txt.includes("5")) return 5;
+ if(txt.includes("6")) return 6;
+ return 0;
+}
+
+function isTurma(t){
+ return t && (t.includes("ANO")||t.match(/[0-9][ºª]/));
+}
+
+function parseCelula(c){
+ const parts=c.split(" ");
+ return {
+   mat:parts[0],
+   prof:parts.slice(1).join(" ")
+ };
+}
+
+// ================== GERAR GRADE ==================
 function gerar(){
-  if(!dados.length){
-    alert("Carregue o arquivo");
-    return;
-  }
 
-  gradeTurma = {};
-  gradeProf = {};
+ let grade={};
 
-  dados.forEach(d=>{
+ dados.forEach(d=>{
 
-    if(!gradeTurma[d.turma]){
-      gradeTurma[d.turma]={};
-      dias.forEach(dia=>{
-        gradeTurma[d.turma][dia]=Array(aulas).fill(null);
-      });
-    }
+   if(!grade[d.turma]){
+     grade[d.turma]={};
+     dias.forEach(x=>grade[d.turma][x]=Array(aulas).fill("-"));
+   }
 
-    if(!gradeProf[d.prof]){
-      gradeProf[d.prof]={};
-      dias.forEach(dia=>{
-        gradeProf[d.prof][dia]=Array(aulas).fill(null);
-      });
-    }
+   grade[d.turma][d.dia][d.aula-1]=d.materia+" ("+d.professor+")";
 
-    let restante=d.aulas;
+ });
 
-    for(let dia of dias){
-      for(let i=0;i<aulas;i++){
+ let html="";
 
-        if(restante<=0) break;
+ for(let turma in grade){
 
-        // evitar conflito professor
-        if(!gradeTurma[d.turma][dia][i] && !gradeProf[d.prof][dia][i]){
+   html+="<h3>"+turma+"</h3>";
+   html+="<table><tr><th>Aula</th>";
 
-          const aulaObj = {
-            turma:d.turma,
-            disc:d.disc,
-            prof:d.prof
-          };
+   dias.forEach(d=>html+="<th>"+d+"</th>");
+   html+="</tr>";
 
-          gradeTurma[d.turma][dia][i]=aulaObj;
-          gradeProf[d.prof][dia][i]=aulaObj;
+   for(let i=0;i<aulas;i++){
+     html+="<tr><td>"+(i+1)+"</td>";
+     dias.forEach(d=>{
+       html+="<td>"+grade[turma][d][i]+"</td>";
+     });
+     html+="</tr>";
+   }
 
-          restante--;
-        }
-      }
-    }
-  });
+   html+="</table>";
+ }
 
-  renderTurma();
-  renderProf();
-
-  alert("✅ Grade gerada com sucesso");
+ document.getElementById("saida").innerHTML=html;
 }
-
-// ========================
-// RENDER TURMA
-// ========================
-function renderTurma(){
-  let html="";
-
-  for(let turma in gradeTurma){
-    html+=`<h3>${turma}</h3><table>`;
-    html+=`<tr><th>Aula</th>${dias.map(d=>`<th>${d}</th>`).join('')}</tr>`;
-
-    for(let i=0;i<aulas;i++){
-      html+=`<tr><td>${i+1}</td>`;
-
-      dias.forEach(dia=>{
-        const a=gradeTurma[turma][dia][i];
-        if(a) html+=`<td><b>${a.disc}</b><br>${a.prof}</td>`;
-        else html+=`<td>-</td>`;
-      });
-
-      html+="</tr>";
-    }
-
-    html+="</table><br>";
-  }
-
-  document.getElementById('saidaTurma').innerHTML=html;
-}
-
-// ========================
-// RENDER PROF
-// ========================
-function renderProf(){
-  let html="";
-
-  for(let prof in gradeProf){
-    html+=`<h3>${prof}</h3><table>`;
-    html+=`<tr><th>Aula</th>${dias.map(d=>`<th>${d}</th>`).join('')}</tr>`;
-
-    for(let i=0;i<aulas;i++){
-      html+=`<tr><td>${i+1}</td>`;
-
-      dias.forEach(dia=>{
-        const a=gradeProf[prof][dia][i];
-        if(a) html+=`<td><b>${a.disc}</b><br>${a.turma}</td>`;
-        else html+=`<td>-</td>`;
-      });
-
-      html+="</tr>";
-    }
-
-    html+="</table><br>";
-  }
-
-  document.getElementById('saidaProf').innerHTML=html;
-}
-
 </script>
 
 </body>
