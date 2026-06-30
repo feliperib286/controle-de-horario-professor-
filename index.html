@@ -104,7 +104,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
   </div>
 </div>
 
-<!-- ===== ENTRADA ===== -->
 <div class="card">
   <div class="tabs">
     <div class="tab active" onclick="mudarAba('csv',this)">📂 CSV de Atribuição</div>
@@ -112,7 +111,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
     <div class="tab" onclick="mudarAba('manual',this)">✏️ Cadastro Manual</div>
   </div>
 
-  <!-- ABA CSV -->
   <div id="tab-csv" class="panel active">
     <div class="slabel">Arquivo exportado do sistema SEDUC/Atribuição de Aulas</div>
     <div class="dropzone" onclick="document.getElementById('fileInput').click()">
@@ -126,7 +124,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
       <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
     </div>
     <div id="fileStatus" style="margin-top:12px"></div>
-    <!-- Preview da atribuição carregada -->
     <div id="previewWrap" style="display:none;margin-top:1rem">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
         <span class="slabel" style="margin:0" id="previewCount"></span>
@@ -146,7 +143,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
     </div>
   </div>
 
-  <!-- ABA TITULAR -->
   <div id="tab-titular" class="panel">
     <div class="slabel">Professor titular por disciplina e turma</div>
     <div id="titEmpty" style="text-align:center;padding:2rem;color:var(--tx2);font-size:13px">
@@ -178,7 +174,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
     </div>
   </div>
 
-  <!-- ABA MANUAL -->
   <div id="tab-manual" class="panel">
     <div class="slabel">Cadastro manual de aulas</div>
     <div class="form-row" style="margin-bottom:10px">
@@ -205,7 +200,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
   </div>
 </div>
 
-<!-- ===== FILTROS ===== -->
 <div class="card">
   <div class="slabel">Filtros para geração da grade</div>
   <div class="filters">
@@ -225,7 +219,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
   </div>
 </div>
 
-<!-- ===== AÇÕES ===== -->
 <div class="actions">
   <button class="btn btn-primary" onclick="gerarGrade()">📋 Gerar grade</button>
   <button class="btn btn-red" onclick="exportPDF()">📄 Baixar PDF</button>
@@ -234,7 +227,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
 
 <div id="msgBox"></div>
 
-<!-- ===== GRADE ===== -->
 <div id="gradeArea">
   <div id="atpcBox" style="display:none"></div>
   <div id="gradeTitle" class="grade-title"></div>
@@ -249,7 +241,6 @@ td{padding:7px 8px;border:1px solid var(--bor);vertical-align:middle;text-align:
       </table>
     </div>
   </div>
-  <!-- LEGENDA -->
   <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 4px">
     <span><span class="tit-pill">TITULAR</span> Professor responsável</span>
     <span><span class="sub-pill">SUBSTITUTO</span> Substituindo o titular</span>
@@ -415,8 +406,6 @@ function get(arr, idx){ return (idx>=0&&idx<arr.length) ? (arr[idx]||'') : ''; }
 
 function parseTurma(raw){
   // Extrai período (MANHA/TARDE) e nome limpo da turma
-  // Ex: "9º ANO C TARDE ANUAL" → {turma:"9º ANO C", periodo:"Tarde"}
-  //     "3ª SERIE A MANHA ANUAL" → {turma:"3ª SERIE A", periodo:"Manhã"}
   let periodo = 'Manhã';
   let turma = raw.trim();
 
@@ -687,11 +676,6 @@ function gerarGrade(){
   }
 
   // ===== MONTAR TABELA =====
-  // Como o CSV não tem dia/hora por aula, montamos uma grade de resumo semanal
-  // mostrando: turma, disciplina, qtd de aulas, professor
-  // Quando filtrado por professor: grade por turma + disciplinas
-  // Quando filtrado por turma: grade por disciplina + professor
-
   const body = document.getElementById('tBody');
   body.innerHTML='';
 
@@ -709,8 +693,6 @@ function gerarGrade(){
     const hlist = per==='Manhã' ? H_MANHA : H_TARDE;
 
     // Distribuir aulas pelos horários de forma visual
-    // Como não temos dia/aula no CSV, distribuímos as aulas igualmente pela semana
-    // baseado na qtd de aulas por registro
     const distribuicao = distribuirAulas(aulasP, fProf, fTurma);
 
     hlist.forEach(h=>{
@@ -752,26 +734,21 @@ function gerarGrade(){
   document.getElementById('emptySt').style.display='none';
 }
 
-// Distribui as aulas pelos dias/horários baseado na qtd de aulas semanais
 function distribuirAulas(aulas, fProf, fTurma){
   const dist={};
-  // Slots disponíveis por dia (1-6)
   const slots=[];
   DIAS.forEach(d=>{for(let i=1;i<=6;i++) slots.push(`${d}_${i}`)});
 
   aulas.forEach(a=>{
-    // Distribui a.qtd aulas ao longo da semana
     const qtd=Math.min(a.qtd||1,10);
-    // Escolhe slots espaçados
     const step=Math.max(1,Math.floor(slots.length/qtd));
-    // Posição base é hash do nome para ser consistente
     const base=hashStr(`${a.turma}|${a.disciplina||a.materia||''}`);
     for(let i=0;i<qtd;i++){
       const idx=(base + i*step) % slots.length;
       const k=slots[idx];
       if(!dist[k]) dist[k]=[];
-      // Evitar duplicar a mesma aula no mesmo slot
-      if(!dist[k].find(x=>x.professor===a.professor&&(x.disciplina||x.materia)====(a.disciplina||a.materia)&&x.turma===a.turma)){
+      // CORREÇÃO DO ERRO ABAIXO (Mudei ==== para ===)
+      if(!dist[k].find(x=>x.professor===a.professor&&(x.disciplina||x.materia)===(a.disciplina||a.materia)&&x.turma===a.turma)){
         dist[k].push(a);
       }
     }
