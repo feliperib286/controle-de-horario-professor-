@@ -7,33 +7,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-/* CSS para forçar a impressão em 1 página no modo nativo e pelo PDF */
+/* IMPRESSÃO NATIVA */
 @media print {
-  .no-print { display:none!important; }
-  .print-page { page-break-after: always; }
-  body { background:#fff; margin: 0; padding: 0; }
-  .page { max-width: 100%; padding: 0.5rem; margin: 0; }
-  .card { box-shadow:none!important; border:1px solid #ccc!important; margin-bottom: 0.5rem; padding: 0.5rem!important; }
-  
-  table.grade th, table.grade td { padding: 2px 3px!important; font-size: 9px!important; }
-  .th-h { width: 85px!important; }
-  .td-per { padding: 3px 5px!important; font-size: 10px!important; }
-  .h-n { font-size: 10px!important; }
-  .h-t { font-size: 8px!important; }
-  .ac-turma { font-size: 10px!important; }
-  .ac-mat { font-size: 10px!important; }
-  .ac-prof { font-size: 9px!important; }
-  
+  .no-print { display:none!important }
+  .print-page { page-break-after: always }
+  body { background:#fff }
+  .card { box-shadow:none!important;border:1px solid #ccc!important }
   select.interactive-select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    border: none!important;
-    background: transparent!important;
-    padding: 0!important;
-    font-size: 10px!important;
-    font-weight: 600!important;
-    color: #0F1824!important;
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    border: none!important; background: transparent!important; padding: 0!important;
+    font-size: 10px!important; font-weight: 600!important; color: #0F1824!important;
   }
 }
 
@@ -53,20 +36,16 @@
 body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:var(--tx);min-height:100vh}
 a{color:inherit;text-decoration:none}
 .page{max-width:1150px;margin:0 auto;padding:1.5rem 1rem}
-
 .app-header{background:var(--blue-dk);color:#fff;padding:1rem 1.5rem;border-radius:var(--r);margin-bottom:1.25rem;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(12,68,124,.3)}
 .app-header h1{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .app-header .sub{font-size:12px;opacity:.75;margin-top:2px}
-
 .card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--sh)}
 .slabel{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-
 .tabs{display:flex;gap:2px;border-bottom:2px solid var(--bor);margin-bottom:1.25rem;overflow-x:auto}
 .tab{padding:9px 20px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;border-radius:var(--rs) var(--rs) 0 0}
 .tab:hover{color:var(--tx);background:var(--sur2)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
 .panel{display:none}.panel.active{display:block}
-
 .dropzone{border:2px dashed var(--bor2);border-radius:var(--r);padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .18s;background:var(--sur2)}
 .dropzone:hover,.dropzone.drag{border-color:var(--blue);background:var(--blue-lt)}
 .dropzone input{display:none}
@@ -74,12 +53,10 @@ a{color:inherit;text-decoration:none}
 .dz-title{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px}
 .dz-sub{font-size:12px;color:var(--tx2)}
 .dz-hint{font-size:11px;color:var(--tx3);margin-top:8px;line-height:1.7}
-
 .filters,.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
 label{font-size:12px;font-weight:500;color:var(--tx2);display:block;margin-bottom:4px}
 select,input[type=text]{width:100%;padding:8px 10px;border:1.5px solid var(--bor2);border-radius:var(--rs);font-size:13px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .15s}
 select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.12)}
-
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--bor2);background:var(--sur);color:var(--tx);transition:all .15s;white-space:nowrap}
 .btn:hover{background:var(--sur2);border-color:var(--bor)}
@@ -88,15 +65,12 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .btn-green{background:var(--green);color:#fff;border-color:var(--green)}.btn-green:hover{background:#1F4C0D}
 .btn-purple{background:var(--purple);color:#fff;border-color:var(--purple)}.btn-purple:hover{background:#5B21B6}
 .btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}.btn-blue:hover{background:var(--blue-dk)}
-
 .msg{border-radius:var(--rs);padding:10px 14px;font-size:13px;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:8px}
 .msg-ok{background:var(--green-lt);border:1px solid #86EFAC;color:#14532D}
 .msg-err{background:var(--red-lt);border:1px solid #FCA5A5;color:#7F1D1D}
 .msg-info{background:var(--blue-lt);border:1px solid #93C5FD;color:var(--blue-dk)}
 .msg-warn{background:var(--amber-bg);border:1px solid var(--amber-b);color:var(--amber-t)}
-
 .atpc-box{background:var(--amber-bg);border-left:4px solid var(--amber-b);border-radius:0 var(--rs) var(--rs) 0;padding:.85rem 1.1rem;font-size:13px;color:var(--amber-t);line-height:1.6;margin-bottom:1rem}
-
 .grade-wrap{overflow-x:auto}
 .grade{width:100%;border-collapse:collapse;font-size:12px}
 .grade th{background:var(--blue-dk);color:#fff;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:10px 8px;border:1px solid rgba(255,255,255,.15);text-align:center}
@@ -108,38 +82,16 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .h-t{font-size:10px;color:var(--tx3);margin-top:1px}
 .td-int{background:#F9FAFB;font-size:11px;color:var(--tx3);font-style:italic;padding:5px 8px!important;text-align:center;vertical-align:middle!important}
 .td-aula{background:var(--sur);padding:4px 5px!important}
-
-.interactive-select {
-  width: 100%;
-  padding: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background-color: transparent;
-  color: var(--tx);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.interactive-select:hover {
-  background-color: var(--blue-lt);
-  border-color: var(--blue);
-}
-.interactive-select:focus {
-  background-color: #fff;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 2px rgba(24,95,165,.15);
-}
-
+.interactive-select { width: 100%; padding: 4px; font-size: 11px; font-weight: 500; border: 1px solid transparent; border-radius: 4px; background-color: transparent; color: var(--tx); cursor: pointer; transition: all 0.2s; }
+.interactive-select:hover { background-color: var(--blue-lt); border-color: var(--blue); }
+.interactive-select:focus { background-color: #fff; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(24,95,165,.15); }
 .ac-turma{font-size:11px;font-weight:700;color:var(--tx)}
 .ac-mat{font-size:11px;color:var(--blue-dk);font-weight:600}
 .ac-prof{font-size:10px;color:var(--tx2)}
-
 .tit-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .tit-tbl th{background:var(--blue-lt);color:var(--blue-dk);font-weight:700;font-size:11px;text-transform:uppercase;padding:8px 10px;border:1px solid #BFDBFE;text-align:left}
 .tit-tbl td{padding:7px 10px;border:1px solid var(--bor);vertical-align:middle}
 .tit-tbl tr:nth-child(even) td{background:#FAFBFC}
-
 .print-page{background:#fff;padding:1cm;margin-bottom:2rem;border:1px solid var(--bor);border-radius:var(--r)}
 .print-header{text-align:center;margin-bottom:1rem;border-bottom:2px solid var(--blue);padding-bottom:.75rem}
 .print-header h2{font-size:18px;font-weight:700;color:var(--blue-dk)}
@@ -147,6 +99,34 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 #gradeArea{display:none}
 #printArea{display:none}
 .empty-st{text-align:center;padding:4rem 1rem;color:var(--tx2)}
+
+/* ========================================================
+   COMPRESSÃO PARA CABER EM 1 FOLHA NO PDF
+   ======================================================== */
+.pdf-compact {
+  padding: 0 !important; margin: 0 !important; background: white !important;
+}
+.pdf-compact .card {
+  padding: 0 !important; border: none !important; box-shadow: none !important; margin: 0 !important;
+}
+.pdf-compact table {
+  width: 100% !important; table-layout: fixed !important;
+}
+.pdf-compact th, .pdf-compact td {
+  padding: 2px !important; font-size: 8px !important; line-height: 1 !important; border: 1px solid #ccc !important;
+}
+.pdf-compact .th-h { width: 10% !important; }
+.pdf-compact th { font-size: 9px !important; padding: 4px 2px !important; }
+.pdf-compact .td-per { font-size: 9px !important; padding: 3px !important; }
+.pdf-compact .td-int { padding: 2px !important; font-size: 8px !important; }
+.pdf-compact .h-n { font-size: 8px !important; }
+.pdf-compact .h-t { font-size: 6px !important; }
+.pdf-compact .ac-turma { font-size: 8px !important; }
+.pdf-compact .ac-mat { font-size: 8px !important; }
+.pdf-compact .ac-prof { font-size: 7px !important; }
+.pdf-compact .aula-cell { padding: 2px !important; margin: 1px 0 !important; }
+.pdf-compact #gradeTitle { font-size: 14px !important; margin-bottom: 5px !important; }
+.pdf-compact #atpcBox { font-size: 9px !important; padding: 5px !important; margin-bottom: 5px !important; }
 </style>
 </head>
 <body>
@@ -156,7 +136,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div style="font-size:32px">📅</div>
   <div>
     <h1>Sistema de Horários Escolares</h1>
-    <div class="sub">Leitura Avançada · Validação por Atribuição · Impressão Individual</div>
+    <div class="sub">Leitura Avançada · Validação por Atribuição · Grade Editável</div>
   </div>
 </div>
 
@@ -169,55 +149,43 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 
   <div id="tab-arquivos" class="panel active">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-
       <div>
         <div class="slabel">1 · Grade de horários (Excel SEDUC)</div>
         <div class="dropzone" id="dz1" onclick="document.getElementById('f1').click()">
           <span class="dz-icon">📊</span>
           <div class="dz-title">Horário das Aulas .xlsx</div>
           <div class="dz-sub">Arquivo com abas "TARDE" e "MANHA"</div>
-          <div class="dz-hint">Mesmo se o layout for "duplo" com múltiplas colunas de horas, nós processaremos.</div>
           <input type="file" id="f1" accept=".xlsx,.xls">
         </div>
         <div id="st1" style="margin-top:8px"></div>
       </div>
-
       <div>
         <div class="slabel">2 · Atribuição de Aulas (CSV SEDUC) — opcional</div>
         <div class="dropzone" id="dz2" onclick="document.getElementById('f2').click()">
           <span class="dz-icon">📋</span>
           <div class="dz-title">Atribuição de Aulas .csv</div>
           <div class="dz-sub">Exportado do sistema SEDUC</div>
-          <div class="dz-hint">Para cruzamento e validação de professores reais.</div>
           <input type="file" id="f2" accept=".csv">
         </div>
         <div id="st2" style="margin-top:8px"></div>
       </div>
     </div>
-
     <div id="statusGeral" style="margin-top:1rem;display:none">
       <div class="msg msg-ok" id="statusMsg"></div>
     </div>
   </div>
 
   <div id="tab-titular" class="panel">
-    <div id="titEmpty" style="text-align:center;padding:2rem;color:var(--tx2)">
-      ⚠️ Carregue os arquivos primeiro (aba Arquivos).
-    </div>
+    <div id="titEmpty" style="text-align:center;padding:2rem;color:var(--tx2)">⚠️ Carregue os arquivos primeiro.</div>
     <div id="titWrap" style="display:none">
       <div class="msg msg-info" id="titMsg"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <span id="titCount" style="font-size:12px;color:var(--tx2)"></span>
-        <div style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-primary" onclick="gerarGrade()">✅ Aplicar e Gerar Grade</button>
-        </div>
+        <button class="btn btn-sm btn-primary" onclick="gerarGrade()">✅ Aplicar e Gerar Grade</button>
       </div>
       <div style="overflow-x:auto">
         <table class="tit-tbl">
-          <thead><tr>
-            <th>Turma</th><th>Per.</th><th>Disciplina (matéria na grade)</th>
-            <th>Mais recente (CSV)</th><th>Titular definido</th>
-          </tr></thead>
+          <thead><tr><th>Turma</th><th>Per.</th><th>Disciplina</th><th>Mais recente (CSV)</th><th>Titular definido</th></tr></thead>
           <tbody id="titBody"></tbody>
         </table>
       </div>
@@ -227,49 +195,32 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div id="tab-imprimir" class="panel">
     <div class="slabel">Gerar horários para impressão PDF massiva</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
-
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">👤 Por professor</div>
-        <div style="margin-bottom:8px">
-          <select id="printProf"><option value="">— Todos os professores —</option></select>
-        </div>
+        <div style="margin-bottom:8px"><select id="printProf"><option value="">— Todos —</option></select></div>
         <button class="btn btn-primary" style="width:100%" onclick="imprimirPorProf()">🖨️ Imprimir</button>
       </div>
-
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">🕐 Por período</div>
-        <div style="margin-bottom:8px">
-          <select id="printPer">
-            <option value="Manhã">Manhã</option>
-            <option value="Tarde">Tarde</option>
-            <option value="">Ambos</option>
-          </select>
-        </div>
+        <div style="margin-bottom:8px"><select id="printPer"><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option><option value="">Ambos</option></select></div>
         <button class="btn btn-green" style="width:100%" onclick="imprimirPorPeriodo()">🖨️ Imprimir</button>
       </div>
-
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">📚 Por série / turma</div>
-        <div style="margin-bottom:8px">
-          <select id="printTurma"><option value="">— Todas as turmas —</option></select>
-        </div>
+        <div style="margin-bottom:8px"><select id="printTurma"><option value="">— Todas —</option></select></div>
         <button class="btn btn-purple" style="width:100%" onclick="imprimirPorTurma()">🖨️ Imprimir</button>
       </div>
-
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">📘 Por matéria</div>
-        <div style="margin-bottom:8px">
-          <select id="printMat"><option value="">— Todas as matérias —</option></select>
-        </div>
+        <div style="margin-bottom:8px"><select id="printMat"><option value="">— Todas —</option></select></div>
         <button class="btn btn-blue" style="width:100%" onclick="imprimirPorMateria()">🖨️ Imprimir</button>
       </div>
-
     </div>
   </div>
 </div>
 
 <div class="card no-print">
-  <div class="slabel">Visualizar e Editar Grade do Professor / Turma</div>
+  <div class="slabel">Visualizar e Editar Grade</div>
   <div class="filters">
     <div><label>Professor</label><select id="fProf"><option value="">Todos</option></select></div>
     <div><label>Período</label><select id="fPer"><option value="">Todos</option><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>
@@ -284,7 +235,9 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 <div id="msgBox"></div>
 
 <div id="gradeArea">
-  <div class="actions no-print" style="justify-content: flex-end; margin-bottom: 0.5rem;">
+  <div class="actions no-print" style="justify-content: flex-end; margin-bottom: 0.5rem; gap: 8px;">
+    <!-- NOVO: BOTÃO LIMPAR GRADE -->
+    <button class="btn btn-sm" style="background:#f1f5f9; border-color:#cbd5e1; color:#475569" onclick="limparGrade()">🧹 Limpar Grade</button>
     <button class="btn btn-red" onclick="exportPDF()">📄 Salvar PDF da Tela Atual</button>
   </div>
   
@@ -304,7 +257,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   </div>
   
   <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 2px">
-    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada para alterá-las. Ex: Adicionar ATPC, Janela ou Mudar o professor de uma aula livremente.</p>
+    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade para alterá-las. Ex: Adicionar ATPC, Janela ou Mudar o professor de uma aula livremente.</p>
   </div>
 </div>
 
@@ -378,7 +331,6 @@ function isHorario(s){
   return /^\d{2}:\d{2}/.test(s)||/^\d+[ºª°°]\s*AULA/i.test(s);
 }
 
-// Map index modificado para abraçar as mudanças de intervalos duplos
 function mapIdx(h,per){
   if(per==='Manhã'){
     if(h.includes('07:00')) return 1;
@@ -402,11 +354,9 @@ function parsecelula(val){
   if(!val) return{mat:null,prof:null};
   const cel=val.toString().trim();
   if(isHorario(cel)||/INTERVALO/i.test(cel)) return{mat:null,prof:null};
-  
   const pref=['ED FISICA','ED. FISICA','EDUCACAO FISICA','MAT APL','PROJETO DE VIDA','PV','ODEP','ODEM',
               'ARTES','ARTE','PORT','MAT','GEO','HIST','INGLES','INGLÊS','QUIM','BIO','FISICA','REDACAO',
               'SOCIOLOGIA','FILOSOFIA','CIEN','ED FINANCEIRA','ED. FINANCEIRA'].sort((a,b)=>b.length-a.length);
-  
   const cu=cel.toUpperCase();
   for(const p of pref){
     if(cu.startsWith(p)){
@@ -441,7 +391,6 @@ function processarXLSX(file){
   reader.readAsArrayBuffer(file);
 }
 
-// NOVO LEITOR DUPLO DO EXCEL DA SEDUC
 function parseAbaDuplaXLSX(ws, periodo){
   const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
   const result=[];
@@ -454,9 +403,7 @@ function parseAbaDuplaXLSX(ws, periodo){
     const row=rows[ri]||[];
     if(limpStr(row[0])==='SALAS'){ salas_row_idx = ri; break; }
   }
-  
   if (salas_row_idx === -1) return [];
-  
   const salasRow = rows[salas_row_idx] || [];
   let currentTimeCol = -1;
   for(let ci=0; ci<salasRow.length; ci++){
@@ -472,7 +419,6 @@ function parseAbaDuplaXLSX(ws, periodo){
   for(let ri=salas_row_idx+1; ri<rows.length; ri++){
       const row = rows[ri]||[];
       const c0 = limpStr(row[0]);
-      
       const dia = detectarDia(c0);
       if(dia){diaAtual=dia;continue}
       if(!diaAtual) continue;
@@ -499,11 +445,9 @@ function parseAbaDuplaXLSX(ws, periodo){
           }
       });
   }
-
   return result;
 }
 
-// CSV
 function processarCSV(file){
   document.getElementById('st2').innerHTML=`<div class="msg msg-info">⏳ Lendo ${file.name}...</div>`;
   const reader=new FileReader();
@@ -528,16 +472,15 @@ function parseCSV(text){
   }
   if(hi===-1) throw new Error('Cabeçalho não encontrado.');
   const sep=lines[hi].includes(';')?';':',';
-  const heads=lines[hi].split(sep).map(h=>h.trim().replace(/"/g,''));
+  const heads=splitLine(lines[hi],sep).map(h=>h.trim().replace(/"/g,''));
   const idx=(col)=>heads.findIndex(h=>norm(h)===norm(col));
   const iProf=idx('Professor'),iTurma=idx('Turma'),iDisc=idx('Disciplina'),iSub=idx('Substituição'),iInicio=idx('Início de Vigência'),iQtd=idx('Qtde. Aulas');
   
   if(iProf<0||iTurma<0) throw new Error('Colunas não encontradas.');
   const res=[];
   for(let i=hi+1;i<lines.length;i++){
-    const p=lines[i].split(sep).map(v=>v.trim().replace(/"/g,''));
+    const p=splitLine(lines[i],sep).map(v=>v.trim().replace(/"/g,''));
     const prof=p[iProf]||''; if(!prof) continue;
-    
     let turmaRaw = p[iTurma]||'';
     let periodo = 'Manhã';
     if(/TARDE/i.test(turmaRaw)) periodo='Tarde';
@@ -547,6 +490,14 @@ function parseCSV(text){
     res.push({professor:prof.toUpperCase(), turma:turmaL, disciplina:(p[iDisc]||'').toUpperCase(), substituicao:norm(p[iSub]||'').includes('substitui'), dataInicio:parseData(p[iInicio]||''), qtd:parseInt(p[iQtd])||1});
   }
   return res;
+}
+
+function splitLine(line,sep){
+  const r=[];let cur='',q=false;
+  for(const c of line){
+    if(c==='"'){q=!q}else if(c===sep&&!q){r.push(cur);cur=''}else cur+=c;
+  }
+  r.push(cur);return r;
 }
 
 function parseData(s){ const m=(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); return m?parseInt(m[3]+m[2]+m[1]):0; }
@@ -568,7 +519,6 @@ function construirTitulares(){
     if(!combos[k]) combos[k]={turma:r.turma,materia:r.materia,profs:new Map()};
     combos[k].profs.set(r.professor, (combos[k].profs.get(r.professor)||0)+1);
   });
-
   Object.entries(combos).forEach(([k,g])=>{
     titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0]; 
   });
@@ -727,6 +677,18 @@ function colorirSelect(el) {
 }
 
 // ======================================================
+// LIMPAR GRADE
+// ======================================================
+function limparGrade() {
+  if(confirm("Tem certeza que deseja apagar toda a grade editável?")) {
+    document.querySelectorAll('#horarioTabela .interactive-select').forEach(sel => {
+        sel.value = "";
+        colorirSelect(sel);
+    });
+  }
+}
+
+// ======================================================
 // IMPRESSÃO E SEPARAÇÃO MASSIVAS
 // ======================================================
 function imprimirPorProf(){
@@ -819,7 +781,16 @@ function exportPDF(){
   const el=document.getElementById('gradeArea');
   if(el.style.display==='none'){ alert('Gere a grade primeiro.'); return; }
   
+  const wrapper = document.createElement('div');
+  wrapper.className = 'pdf-compact';
+  
   const clone = el.cloneNode(true);
+  
+  // Remove actions block from PDF
+  const acts = clone.querySelector('.actions');
+  if(acts) acts.remove();
+  const hints = clone.querySelector('.no-print');
+  if(hints) hints.remove();
   
   // Transforma os selects selecionados em texto simples antes de gerar PDF
   clone.querySelectorAll('.interactive-select').forEach(sel => {
@@ -830,17 +801,20 @@ function exportPDF(){
       novoSpan.style.fontWeight = 'bold';
       novoSpan.style.color = cor;
       novoSpan.style.textAlign = 'center';
-      novoSpan.style.padding = '4px';
+      novoSpan.style.padding = '1px';
+      novoSpan.style.fontSize = '8px';
       sel.parentNode.replaceChild(novoSpan, sel);
   });
 
+  wrapper.appendChild(clone);
+
   html2pdf().set({
-    margin: [0.1, 0.1, 0.1, 0.1], // Força as margens super estreitas pra não perder espaço e não dividir
+    margin: [0.2, 0.2, 0.2, 0.2], 
     filename:'horario-editado.pdf',
     image:{type:'jpeg',quality:0.98},
     html2canvas:{scale:2},
     jsPDF:{unit:'in',format:'a4',orientation:'landscape'} // Mantém deitado para caber os 5 dias lado a lado
-  }).from(clone).save();
+  }).from(wrapper).save();
 }
 
 function msg(tipo,txt){
