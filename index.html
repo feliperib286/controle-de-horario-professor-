@@ -15,7 +15,6 @@
   .page { max-width: 100%; padding: 0.5rem; margin: 0; }
   .card { box-shadow:none!important; border:1px solid #ccc!important; margin-bottom: 0.5rem; padding: 0.5rem!important; }
   
-  /* Ajustes drásticos de tamanho para caber tudo na folha A4 Paisagem */
   table.grade th, table.grade td { padding: 2px 3px!important; font-size: 9px!important; }
   .th-h { width: 85px!important; }
   .td-per { padding: 3px 5px!important; font-size: 10px!important; }
@@ -25,7 +24,6 @@
   .ac-mat { font-size: 10px!important; }
   .ac-prof { font-size: 9px!important; }
   
-  /* Remove as bordas dos selects na impressão e esconde a "setinha" */
   select.interactive-select {
     appearance: none;
     -webkit-appearance: none;
@@ -90,20 +88,12 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .btn-green{background:var(--green);color:#fff;border-color:var(--green)}.btn-green:hover{background:#1F4C0D}
 .btn-purple{background:var(--purple);color:#fff;border-color:var(--purple)}.btn-purple:hover{background:#5B21B6}
 .btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}.btn-blue:hover{background:var(--blue-dk)}
-.btn-sm{padding:6px 12px;font-size:12px}
 
 .msg{border-radius:var(--rs);padding:10px 14px;font-size:13px;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:8px}
 .msg-ok{background:var(--green-lt);border:1px solid #86EFAC;color:#14532D}
 .msg-err{background:var(--red-lt);border:1px solid #FCA5A5;color:#7F1D1D}
 .msg-info{background:var(--blue-lt);border:1px solid #93C5FD;color:var(--blue-dk)}
 .msg-warn{background:var(--amber-bg);border:1px solid var(--amber-b);color:var(--amber-t)}
-
-.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700}
-.bm{background:#FEF9C3;color:#854D0E;border:1px solid #FDE047}
-.bt{background:#CFFAFE;color:#164E63;border:1px solid #67E8F9}
-.br{background:#DCFCE7;color:#14532D;border:1px solid #86EFAC}
-.bs{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
-.bn{background:var(--purple-lt);color:var(--purple);border:1px solid #C4B5FD}
 
 .atpc-box{background:var(--amber-bg);border-left:4px solid var(--amber-b);border-radius:0 var(--rs) var(--rs) 0;padding:.85rem 1.1rem;font-size:13px;color:var(--amber-t);line-height:1.6;margin-bottom:1rem}
 
@@ -119,7 +109,6 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .td-int{background:#F9FAFB;font-size:11px;color:var(--tx3);font-style:italic;padding:5px 8px!important;text-align:center;vertical-align:middle!important}
 .td-aula{background:var(--sur);padding:4px 5px!important}
 
-/* Select interativo dentro da grade gerada */
 .interactive-select {
   width: 100%;
   padding: 4px;
@@ -167,7 +156,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div style="font-size:32px">📅</div>
   <div>
     <h1>Sistema de Horários Escolares</h1>
-    <div class="sub">Validação automática · Grade Editável Pós-Filtro · 2026</div>
+    <div class="sub">Leitura Avançada · Validação por Atribuição · Impressão Individual</div>
   </div>
 </div>
 
@@ -175,7 +164,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div class="tabs">
     <div class="tab active" onclick="mudarAba('arquivos',this)">📂 Arquivos</div>
     <div class="tab" onclick="mudarAba('titular',this)">👤 Professor Titular</div>
-    <div class="tab" onclick="mudarAba('imprimir',this)">🖨️ Imprimir / Salvar PDF</div>
+    <div class="tab" onclick="mudarAba('imprimir',this)">🖨️ Imprimir Massivo</div>
   </div>
 
   <div id="tab-arquivos" class="panel active">
@@ -186,8 +175,8 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
         <div class="dropzone" id="dz1" onclick="document.getElementById('f1').click()">
           <span class="dz-icon">📊</span>
           <div class="dz-title">Horário das Aulas .xlsx</div>
-          <div class="dz-sub">Arquivo com abas "TARDE 2026" e "MANHA 2026"</div>
-          <div class="dz-hint">Células no formato: <strong>MATERIA PROFESSOR</strong></div>
+          <div class="dz-sub">Arquivo com abas "TARDE" e "MANHA"</div>
+          <div class="dz-hint">Mesmo se o layout for "duplo" com múltiplas colunas de horas, nós processaremos.</div>
           <input type="file" id="f1" accept=".xlsx,.xls">
         </div>
         <div id="st1" style="margin-top:8px"></div>
@@ -280,7 +269,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 </div>
 
 <div class="card no-print">
-  <div class="slabel">Visualizar e Editar Grade</div>
+  <div class="slabel">Visualizar e Editar Grade do Professor / Turma</div>
   <div class="filters">
     <div><label>Professor</label><select id="fProf"><option value="">Todos</option></select></div>
     <div><label>Período</label><select id="fPer"><option value="">Todos</option><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>
@@ -315,17 +304,16 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   </div>
   
   <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 2px">
-    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada acima para alterá-las, adicionar um "Intervalo" ou "ATPC" manualmente antes de salvar o PDF.</p>
+    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada para alterá-las. Ex: Adicionar ATPC, Janela ou Mudar o professor de uma aula livremente.</p>
   </div>
 </div>
 
-<!-- Onde o window.print() renderiza as impressões massivas -->
 <div id="printArea"></div>
 
 <div id="emptySt" class="empty-st no-print">
   <div style="font-size:48px;margin-bottom:12px">📅</div>
   <div style="font-size:15px;font-weight:500;margin-bottom:6px">Carregue os arquivos para começar</div>
-  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários (obrigatório) e o CSV de atribuição (opcional) para cruzar dados.</div>
+  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários e o CSV de atribuição para validação.</div>
 </div>
 
 <script>
@@ -362,9 +350,6 @@ const H_TARDE = [
 
 function calcATPC(n){if(n<=4)return 1;if(n<=15)return 2;if(n<=24)return 3;if(n<=31)return 4;return 5}
 
-// ======================================================
-// TABS E UPLOADS
-// ======================================================
 function mudarAba(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -375,96 +360,7 @@ function mudarAba(id,el){
 document.getElementById('f1').addEventListener('change',e=>{ if(e.target.files[0]) processarXLSX(e.target.files[0]); });
 document.getElementById('f2').addEventListener('change',e=>{ if(e.target.files[0]) processarCSV(e.target.files[0]); });
 
-function processarXLSX(file){
-  document.getElementById('st1').innerHTML=`<div class="msg msg-info">⏳ Lendo ${file.name}...</div>`;
-  const reader=new FileReader();
-  reader.onload=function(evt){
-    try {
-      const arr=new Uint8Array(evt.target.result);
-      const wb=XLSX.read(arr,{type:'array'});
-      gradeXLSX=[];
-      wb.SheetNames.forEach(sn=>{
-        const per=(/MANHA|MANHÃ/i.test(sn))?'Manhã':'Tarde';
-        gradeXLSX.push(...parseAbaXLSX(wb.Sheets[sn], per));
-      });
-      document.getElementById('st1').innerHTML=`<div class="msg msg-ok">✅ <strong>${file.name}</strong> lido.</div>`;
-      aposCarregar();
-    } catch(err){
-      document.getElementById('st1').innerHTML=`<div class="msg msg-err">❌ Erro no arquivo XLSX</div>`;
-    }
-  };
-  reader.readAsArrayBuffer(file);
-}
-
-function parseAbaXLSX(ws, periodo){
-  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
-  const result=[];
-  const colTurma={};
-  let diaAtual=null;
-
-  for(let ri=0;ri<rows.length;ri++){
-    const row=rows[ri]||[];
-    const c0=limpStr(row[0]);
-
-    if(c0==='SALAS'){
-      for(let ci=1;ci<row.length;ci++){
-        const v=limpStr(row[ci]);
-        if(!v||v==='SALAS'||isHorario(v)) continue;
-        if(/ANO|SÉRIE|SERIE/i.test(v)||/\d+[ºª°°]\s*[A-Z]/i.test(v)){
-          colTurma[ci]=row[ci].toString().trim();
-        }
-      }
-      continue;
-    }
-
-    const dia=detectarDia(c0);
-    if(dia){diaAtual=dia;continue}
-    if(!diaAtual) continue;
-
-    const horariosLinha=[];
-    for(let ci=0;ci<row.length;ci++){
-      const v=limpStr(row[ci]);
-      if(v && isHorario(v) && !v.includes('INTERVALO')){
-        const idx=mapIdx(v,periodo);
-        if(idx>0) horariosLinha.push({ci,idx,h:v});
-      }
-    }
-
-    for(let hi=0;hi<horariosLinha.length;hi++){
-      const {ci:hci,idx,h}=horariosLinha[hi];
-      const nextCi=horariosLinha[hi+1]?horariosLinha[hi+1].ci:row.length;
-      for(let ci=hci+1;ci<nextCi;ci++){
-        if(!(ci in colTurma)) continue;
-        const val=row[ci];
-        const {mat,prof}=parsecelula(val);
-        if(!mat||!prof) continue;
-        const chave=`${colTurma[ci]}|${diaAtual}|${idx}|${mat}|${prof}`;
-        if(!result.find(r=>r._k===chave)){
-          result.push({_k:chave,periodo,turma:colTurma[ci],dia:diaAtual,aula_idx:idx,horario:h,materia:mat,professor:prof});
-        }
-      }
-    }
-  }
-  return result;
-}
-
-function parsecelula(val){
-  if(!val) return{mat:null,prof:null};
-  const cel=val.toString().trim();
-  if(isHorario(cel)||/INTERVALO/i.test(cel)) return{mat:null,prof:null};
-  const pref=['ED FISICA','MAT APL','PROJETO DE VIDA','ARTES','ARTE','PORT','MAT','GEO','HIST','INGLES','QUIM','BIO','FISICA','REDACAO','SOCIOLOGIA','FILOSOFIA','CIEN'].sort((a,b)=>b.length-a.length);
-  
-  const cu=cel.toUpperCase();
-  for(const p of pref){
-    if(cu.startsWith(p)){
-      let prof=cel.substring(p.length).trim().replace(/^[.\- ]+/,'').trim();
-      if(prof) return{mat:p,prof:prof.toUpperCase()};
-    }
-  }
-  const parts=cel.split(' ');
-  if(parts.length>1) return{mat:parts[0].toUpperCase(),prof:parts.slice(1).join(' ').toUpperCase()};
-  return{mat:null,prof:null};
-}
+function limpStr(v){ return v===null||v===undefined ? '' : v.toString().trim().toUpperCase().replace(/\s+/g,' '); }
 
 function detectarDia(s){
   if(!s) return null;
@@ -482,27 +378,132 @@ function isHorario(s){
   return /^\d{2}:\d{2}/.test(s)||/^\d+[ºª°°]\s*AULA/i.test(s);
 }
 
+// Map index modificado para abraçar as mudanças de intervalos duplos
 function mapIdx(h,per){
   if(per==='Manhã'){
     if(h.includes('07:00')) return 1;
     if(h.includes('07:50')) return 2;
     if(h.includes('08:40')) return 3;
-    if(h.includes('09:50')) return 4;
-    if(h.includes('10:40')) return 5;
+    if(h.includes('09:50')||h.includes('09:30')) return 4;
+    if(h.includes('10:40')||h.includes('10:20')) return 5;
     if(h.includes('11:30')) return 6;
   } else {
     if(h.includes('13:00')) return 1;
     if(h.includes('13:50')) return 2;
-    if(h.includes('15:00')) return 3;
-    if(h.includes('15:50')) return 4;
+    if(h.includes('14:40')||h.includes('15:00')) return 3;
+    if(h.includes('15:50')||h.includes('15:30')) return 4;
     if(h.includes('16:40')) return 5;
     if(h.includes('17:30')) return 6;
   }
   return 0;
 }
 
-function limpStr(v){ return v===null||v===undefined ? '' : v.toString().trim().toUpperCase().replace(/\s+/g,' '); }
+function parsecelula(val){
+  if(!val) return{mat:null,prof:null};
+  const cel=val.toString().trim();
+  if(isHorario(cel)||/INTERVALO/i.test(cel)) return{mat:null,prof:null};
+  
+  const pref=['ED FISICA','ED. FISICA','EDUCACAO FISICA','MAT APL','PROJETO DE VIDA','PV','ODEP','ODEM',
+              'ARTES','ARTE','PORT','MAT','GEO','HIST','INGLES','INGLÊS','QUIM','BIO','FISICA','REDACAO',
+              'SOCIOLOGIA','FILOSOFIA','CIEN','ED FINANCEIRA','ED. FINANCEIRA'].sort((a,b)=>b.length-a.length);
+  
+  const cu=cel.toUpperCase();
+  for(const p of pref){
+    if(cu.startsWith(p)){
+      let prof=cel.substring(p.length).trim().replace(/^[.\- ]+/,'').trim();
+      prof=prof.replace(/^\d+\s*/,'').trim();
+      if(prof) return{mat:p,prof:prof.toUpperCase()};
+    }
+  }
+  const parts=cel.split(' ');
+  if(parts.length>1) return{mat:parts[0].toUpperCase(),prof:parts.slice(1).join(' ').toUpperCase()};
+  return{mat:null,prof:null};
+}
 
+function processarXLSX(file){
+  document.getElementById('st1').innerHTML=`<div class="msg msg-info">⏳ Lendo ${file.name}...</div>`;
+  const reader=new FileReader();
+  reader.onload=function(evt){
+    try {
+      const arr=new Uint8Array(evt.target.result);
+      const wb=XLSX.read(arr,{type:'array'});
+      gradeXLSX=[];
+      wb.SheetNames.forEach(sn=>{
+        const per=(/MANHA|MANHÃ/i.test(sn))?'Manhã':'Tarde';
+        gradeXLSX.push(...parseAbaDuplaXLSX(wb.Sheets[sn], per));
+      });
+      document.getElementById('st1').innerHTML=`<div class="msg msg-ok">✅ <strong>${file.name}</strong> lido.</div>`;
+      aposCarregar();
+    } catch(err){
+      document.getElementById('st1').innerHTML=`<div class="msg msg-err">❌ Erro no arquivo XLSX</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// NOVO LEITOR DUPLO DO EXCEL DA SEDUC
+function parseAbaDuplaXLSX(ws, periodo){
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+  const result=[];
+  let timeColumns = [];
+  let colTurma = {}; 
+  let salas_row_idx = -1;
+  let diaAtual=null;
+
+  for(let ri=0;ri<rows.length;ri++){
+    const row=rows[ri]||[];
+    if(limpStr(row[0])==='SALAS'){ salas_row_idx = ri; break; }
+  }
+  
+  if (salas_row_idx === -1) return [];
+  
+  const salasRow = rows[salas_row_idx] || [];
+  let currentTimeCol = -1;
+  for(let ci=0; ci<salasRow.length; ci++){
+      const val = limpStr(salasRow[ci]);
+      if(val === 'SALAS'){
+          currentTimeCol = ci;
+          timeColumns.push(ci);
+      } else if(val && (/ANO/i.test(val) || /SÉRIE|SERIE/i.test(val) || /\d+[ºª°°]\s*[A-Z]/i.test(val))) {
+          colTurma[ci] = { turma: val.toString().trim(), time_col: currentTimeCol };
+      }
+  }
+
+  for(let ri=salas_row_idx+1; ri<rows.length; ri++){
+      const row = rows[ri]||[];
+      const c0 = limpStr(row[0]);
+      
+      const dia = detectarDia(c0);
+      if(dia){diaAtual=dia;continue}
+      if(!diaAtual) continue;
+      
+      timeColumns.forEach(t_col => {
+          const time_val = limpStr(row[t_col]);
+          if(time_val && isHorario(time_val) && !time_val.includes('INTERVALO')) {
+              const idx = mapIdx(time_val, periodo);
+              if(idx > 0) {
+                  Object.keys(colTurma).forEach(ci => {
+                      if(colTurma[ci].time_col === t_col) {
+                          const val = row[ci];
+                          const {mat,prof} = parsecelula(val);
+                          if(mat && prof) {
+                              const turmaName = colTurma[ci].turma;
+                              const chave=`${turmaName}|${diaAtual}|${idx}|${mat}|${prof}`;
+                              if(!result.find(r=>r._k===chave)){
+                                  result.push({_k:chave,periodo,turma:turmaName,dia:diaAtual,aula_idx:idx,horario:time_val,materia:mat,professor:prof});
+                              }
+                          }
+                      }
+                  });
+              }
+          }
+      });
+  }
+
+  return result;
+}
+
+// CSV
 function processarCSV(file){
   document.getElementById('st2').innerHTML=`<div class="msg msg-info">⏳ Lendo ${file.name}...</div>`;
   const reader=new FileReader();
@@ -536,7 +537,14 @@ function parseCSV(text){
   for(let i=hi+1;i<lines.length;i++){
     const p=lines[i].split(sep).map(v=>v.trim().replace(/"/g,''));
     const prof=p[iProf]||''; if(!prof) continue;
-    res.push({professor:prof.toUpperCase(), turma:p[iTurma]||'', disciplina:(p[iDisc]||'').toUpperCase(), substituicao:norm(p[iSub]||'').includes('substitui'), dataInicio:parseData(p[iInicio]||''), qtd:parseInt(p[iQtd])||1});
+    
+    let turmaRaw = p[iTurma]||'';
+    let periodo = 'Manhã';
+    if(/TARDE/i.test(turmaRaw)) periodo='Tarde';
+    let turmaL = turmaRaw.replace(/\bTARDE\b/gi,'').replace(/\bMANHA\b/gi,'').replace(/\bMANHÃ\b/gi,'')
+      .replace(/\bANUAL\b/gi,'').replace(/\bSEMESTRAL\b/gi,'').replace(/\s{2,}/g,' ').trim();
+
+    res.push({professor:prof.toUpperCase(), turma:turmaL, disciplina:(p[iDisc]||'').toUpperCase(), substituicao:norm(p[iSub]||'').includes('substitui'), dataInicio:parseData(p[iInicio]||''), qtd:parseInt(p[iQtd])||1});
   }
   return res;
 }
@@ -544,9 +552,6 @@ function parseCSV(text){
 function parseData(s){ const m=(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); return m?parseInt(m[3]+m[2]+m[1]):0; }
 function norm(s){return(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
 
-// ======================================================
-// APÓS CARREGAR
-// ======================================================
 function aposCarregar(){
   if(!gradeXLSX.length) return;
   construirTitulares();
@@ -567,15 +572,6 @@ function construirTitulares(){
   Object.entries(combos).forEach(([k,g])=>{
     titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0]; 
   });
-
-  const body=document.getElementById('titBody');
-  body.innerHTML='';
-  Object.keys(combos).sort().forEach(k=>{
-    const profsArr=[...combos[k].profs.keys()];
-    body.innerHTML+=`<tr><td>${combos[k].turma}</td><td>—</td><td>${combos[k].materia}</td><td>—</td><td><select onchange="titulares['${k}']=this.value">${profsArr.map(p=>`<option value="${p}">${p}</option>`).join('')}</select></td></tr>`;
-  });
-  document.getElementById('titEmpty').style.display='none';
-  document.getElementById('titWrap').style.display='block';
 }
 
 function atualizarFiltros(){
@@ -610,10 +606,9 @@ function gerarGrade(){
   let dados=gradeXLSX.filter(r=> (!fProf||r.professor===fProf) && (!fPer||r.periodo===fPer) && (!fTurma||r.turma===fTurma) && (!fMat||r.materia===fMat));
   if(!dados.length){ msg('warn','Nenhum resultado com esses filtros.'); return; }
 
-  let buildOptions = `<option value="">— Livre —</option>
+  let buildOptions = `<option value="">— Livre / Vago —</option>
                       <option value="☕ Intervalo">☕ Intervalo</option>
-                      <option value="📌 ATPC">📌 ATPC</option>
-                      <option value="Janela">Janela / Vago</option>`;
+                      <option value="📌 ATPC">📌 ATPC</option>`;
                       
   const listToChoose = new Set();
   dados.forEach(r => {
@@ -661,7 +656,7 @@ function renderGrade(tbody, dados, fProf, fTurma, periodos, isInteractive = fals
                 html+=`<td class="td-aula" style="background:#FFF8E7">
                         <select class="interactive-select" style="color:#BA7517" onchange="colorirSelect(this)">
                             <option value="☕ Intervalo">☕ Intervalo</option>
-                            <option value="">— Livre —</option>
+                            <option value="">— Livre / Vago —</option>
                             ${currentOptionsDropdown}
                         </select>
                        </td>`;
@@ -686,7 +681,7 @@ function renderGrade(tbody, dados, fProf, fTurma, periodos, isInteractive = fals
               let customOpt = selectedValue && !currentOptionsDropdown.includes(`value="${selectedValue}"`) ? `<option value="${selectedValue}">${selectedValue}</option>` : '';
               
               html+=`<select class="interactive-select" onchange="colorirSelect(this)">
-                      <option value="">— Livre —</option>
+                      <option value="">— Livre / Vago —</option>
                       ${customOpt}
                       ${currentOptionsDropdown.replace(`<option value="${selectedValue}">`, `<option value="${selectedValue}" selected>`)}
                      </select>`;
@@ -818,13 +813,12 @@ function gerarPaginasImpressao(paginas){
 }
 
 // ======================================================
-// EXPORTAR PDF DA TELA (COM AS CAIXINHAS)
+// EXPORTAR PDF DA TELA EM UMA ÚNICA PÁGINA
 // ======================================================
 function exportPDF(){
   const el=document.getElementById('gradeArea');
   if(el.style.display==='none'){ alert('Gere a grade primeiro.'); return; }
   
-  // Clona o nó para não afetar a interface visível do usuário
   const clone = el.cloneNode(true);
   
   // Transforma os selects selecionados em texto simples antes de gerar PDF
@@ -841,28 +835,12 @@ function exportPDF(){
   });
 
   html2pdf().set({
-    margin: [0.3, 0.4, 0.3, 0.4], 
+    margin: [0.1, 0.1, 0.1, 0.1], // Força as margens super estreitas pra não perder espaço e não dividir
     filename:'horario-editado.pdf',
     image:{type:'jpeg',quality:0.98},
     html2canvas:{scale:2},
-    jsPDF:{unit:'in',format:'a4',orientation:'landscape'}
+    jsPDF:{unit:'in',format:'a4',orientation:'landscape'} // Mantém deitado para caber os 5 dias lado a lado
   }).from(clone).save();
-}
-
-function exportXLSX(){
-  if(document.getElementById('gradeArea').style.display==='none'){ alert('Gere a grade primeiro.'); return; }
-  
-  // Para extrair em Excel precisamos pegar apenas o texto das opções selecionadas
-  const table = document.getElementById('horarioTabela').cloneNode(true);
-  table.querySelectorAll('.interactive-select').forEach(sel => {
-      const val = document.createTextNode(sel.value || "Livre");
-      sel.parentNode.replaceChild(val, sel);
-  });
-
-  const ws=XLSX.utils.table_to_sheet(table);
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Horário');
-  XLSX.writeFile(wb,'Horario-Escolar-2026.xlsx');
 }
 
 function msg(tipo,txt){
