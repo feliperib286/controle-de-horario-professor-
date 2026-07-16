@@ -3,16 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Horários Escolares 2026</title>
+<title>Horários Escolares 2026 - Interativo</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
+/* CSS para forçar a impressão em 1 página no modo nativo e pelo PDF */
 @media print {
-  .no-print { display:none!important }
-  .print-page { page-break-after: always }
-  body { background:#fff }
-  .card { box-shadow:none!important;border:1px solid #ccc!important }
+  .no-print { display:none!important; }
+  .print-page { page-break-after: always; }
+  body { background:#fff; margin: 0; padding: 0; }
+  .page { max-width: 100%; padding: 0.5rem; margin: 0; }
+  .card { box-shadow:none!important; border:1px solid #ccc!important; margin-bottom: 0.5rem; padding: 0.5rem!important; }
+  
+  /* Ajustes drásticos de tamanho para caber tudo na folha A4 Paisagem */
+  table.grade th, table.grade td { padding: 2px 3px!important; font-size: 9px!important; }
+  .th-h { width: 85px!important; }
+  .td-per { padding: 3px 5px!important; font-size: 10px!important; }
+  .h-n { font-size: 10px!important; }
+  .h-t { font-size: 8px!important; }
+  .ac-turma { font-size: 10px!important; }
+  .ac-mat { font-size: 10px!important; }
+  .ac-prof { font-size: 9px!important; }
+  
+  /* Remove as bordas dos selects na impressão e esconde a "setinha" */
+  select.interactive-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: none!important;
+    background: transparent!important;
+    padding: 0!important;
+    font-size: 10px!important;
+    font-weight: 600!important;
+    color: #0F1824!important;
+  }
 }
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --blue:#185FA5;--blue-lt:#E6F1FB;--blue-dk:#0C447C;
@@ -29,20 +55,20 @@
 body{background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;color:var(--tx);min-height:100vh}
 a{color:inherit;text-decoration:none}
 .page{max-width:1150px;margin:0 auto;padding:1.5rem 1rem}
-/* HEADER */
+
 .app-header{background:var(--blue-dk);color:#fff;padding:1rem 1.5rem;border-radius:var(--r);margin-bottom:1.25rem;display:flex;align-items:center;gap:14px;box-shadow:0 2px 12px rgba(12,68,124,.3)}
 .app-header h1{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .app-header .sub{font-size:12px;opacity:.75;margin-top:2px}
-/* CARDS */
+
 .card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:1.25rem 1.5rem;margin-bottom:1rem;box-shadow:var(--sh)}
 .slabel{font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
-/* TABS */
+
 .tabs{display:flex;gap:2px;border-bottom:2px solid var(--bor);margin-bottom:1.25rem;overflow-x:auto}
 .tab{padding:9px 20px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;border-radius:var(--rs) var(--rs) 0 0}
 .tab:hover{color:var(--tx);background:var(--sur2)}
 .tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
 .panel{display:none}.panel.active{display:block}
-/* UPLOAD */
+
 .dropzone{border:2px dashed var(--bor2);border-radius:var(--r);padding:2rem 1.5rem;text-align:center;cursor:pointer;transition:all .18s;background:var(--sur2)}
 .dropzone:hover,.dropzone.drag{border-color:var(--blue);background:var(--blue-lt)}
 .dropzone input{display:none}
@@ -50,12 +76,12 @@ a{color:inherit;text-decoration:none}
 .dz-title{font-size:15px;font-weight:600;color:var(--tx);margin-bottom:4px}
 .dz-sub{font-size:12px;color:var(--tx2)}
 .dz-hint{font-size:11px;color:var(--tx3);margin-top:8px;line-height:1.7}
-/* FORM */
+
 .filters,.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
 label{font-size:12px;font-weight:500;color:var(--tx2);display:block;margin-bottom:4px}
 select,input[type=text]{width:100%;padding:8px 10px;border:1.5px solid var(--bor2);border-radius:var(--rs);font-size:13px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .15s}
 select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,95,165,.12)}
-/* BUTTONS */
+
 .actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:var(--rs);font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--bor2);background:var(--sur);color:var(--tx);transition:all .15s;white-space:nowrap}
 .btn:hover{background:var(--sur2);border-color:var(--bor)}
@@ -65,22 +91,22 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .btn-purple{background:var(--purple);color:#fff;border-color:var(--purple)}.btn-purple:hover{background:#5B21B6}
 .btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}.btn-blue:hover{background:var(--blue-dk)}
 .btn-sm{padding:6px 12px;font-size:12px}
-/* MSGS */
+
 .msg{border-radius:var(--rs);padding:10px 14px;font-size:13px;margin-bottom:.75rem;display:flex;align-items:flex-start;gap:8px}
 .msg-ok{background:var(--green-lt);border:1px solid #86EFAC;color:#14532D}
 .msg-err{background:var(--red-lt);border:1px solid #FCA5A5;color:#7F1D1D}
 .msg-info{background:var(--blue-lt);border:1px solid #93C5FD;color:var(--blue-dk)}
 .msg-warn{background:var(--amber-bg);border:1px solid var(--amber-b);color:var(--amber-t)}
-/* BADGES */
+
 .badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700}
 .bm{background:#FEF9C3;color:#854D0E;border:1px solid #FDE047}
 .bt{background:#CFFAFE;color:#164E63;border:1px solid #67E8F9}
 .br{background:#DCFCE7;color:#14532D;border:1px solid #86EFAC}
 .bs{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
 .bn{background:var(--purple-lt);color:var(--purple);border:1px solid #C4B5FD}
-/* ATPC */
+
 .atpc-box{background:var(--amber-bg);border-left:4px solid var(--amber-b);border-radius:0 var(--rs) var(--rs) 0;padding:.85rem 1.1rem;font-size:13px;color:var(--amber-t);line-height:1.6;margin-bottom:1rem}
-/* GRADE */
+
 .grade-wrap{overflow-x:auto}
 .grade{width:100%;border-collapse:collapse;font-size:12px}
 .grade th{background:var(--blue-dk);color:#fff;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:10px 8px;border:1px solid rgba(255,255,255,.15);text-align:center}
@@ -92,21 +118,39 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .h-t{font-size:10px;color:var(--tx3);margin-top:1px}
 .td-int{background:#F9FAFB;font-size:11px;color:var(--tx3);font-style:italic;padding:5px 8px!important;text-align:center;vertical-align:middle!important}
 .td-aula{background:var(--sur);padding:4px 5px!important}
-.td-vazio{background:var(--sur2);text-align:center;vertical-align:middle!important;color:var(--tx3);padding:8px!important}
-.aula-cell{padding:4px 5px;border-radius:5px;margin:2px 0;transition:background .1s}
-.aula-cell:hover{background:#F0F7FF}
+
+/* Select interativo dentro da grade gerada */
+.interactive-select {
+  width: 100%;
+  padding: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background-color: transparent;
+  color: var(--tx);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.interactive-select:hover {
+  background-color: var(--blue-lt);
+  border-color: var(--blue);
+}
+.interactive-select:focus {
+  background-color: #fff;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px rgba(24,95,165,.15);
+}
+
 .ac-turma{font-size:11px;font-weight:700;color:var(--tx)}
 .ac-mat{font-size:11px;color:var(--blue-dk);font-weight:600}
 .ac-prof{font-size:10px;color:var(--tx2)}
-.ac-sub{display:inline-block;background:#FEF3C7;color:#92400E;border:1px solid #FCD34D;border-radius:3px;font-size:9px;padding:1px 5px;font-weight:700;margin-top:2px}
-.ac-tit{display:inline-block;background:#DCFCE7;color:#14532D;border:1px solid #86EFAC;border-radius:3px;font-size:9px;padding:1px 5px;font-weight:700;margin-top:2px}
-/* TITULARES */
+
 .tit-tbl{width:100%;border-collapse:collapse;font-size:12px}
 .tit-tbl th{background:var(--blue-lt);color:var(--blue-dk);font-weight:700;font-size:11px;text-transform:uppercase;padding:8px 10px;border:1px solid #BFDBFE;text-align:left}
 .tit-tbl td{padding:7px 10px;border:1px solid var(--bor);vertical-align:middle}
 .tit-tbl tr:nth-child(even) td{background:#FAFBFC}
-.tit-tbl select{border:1.5px solid var(--bor2);border-radius:5px;padding:5px 7px;font-size:12px;width:100%;background:var(--sur)}
-/* PRINT PAGE */
+
 .print-page{background:#fff;padding:1cm;margin-bottom:2rem;border:1px solid var(--bor);border-radius:var(--r)}
 .print-header{text-align:center;margin-bottom:1rem;border-bottom:2px solid var(--blue);padding-bottom:.75rem}
 .print-header h2{font-size:18px;font-weight:700;color:var(--blue-dk)}
@@ -114,8 +158,6 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 #gradeArea{display:none}
 #printArea{display:none}
 .empty-st{text-align:center;padding:4rem 1rem;color:var(--tx2)}
-.prog-bar{height:4px;background:var(--blue-lt);border-radius:2px;margin-top:8px;overflow:hidden}
-.prog-fill{height:100%;background:var(--blue);border-radius:2px;transition:width .3s}
 </style>
 </head>
 <body>
@@ -125,7 +167,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div style="font-size:32px">📅</div>
   <div>
     <h1>Sistema de Horários Escolares</h1>
-    <div class="sub">Atualização automática por atribuição · Impressão individual · 2026</div>
+    <div class="sub">Validação automática · Grade Editável Pós-Filtro · 2026</div>
   </div>
 </div>
 
@@ -133,7 +175,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div class="tabs">
     <div class="tab active" onclick="mudarAba('arquivos',this)">📂 Arquivos</div>
     <div class="tab" onclick="mudarAba('titular',this)">👤 Professor Titular</div>
-    <div class="tab" onclick="mudarAba('imprimir',this)">🖨️ Imprimir</div>
+    <div class="tab" onclick="mudarAba('imprimir',this)">🖨️ Imprimir / Salvar PDF</div>
   </div>
 
   <div id="tab-arquivos" class="panel active">
@@ -145,7 +187,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
           <span class="dz-icon">📊</span>
           <div class="dz-title">Horário das Aulas .xlsx</div>
           <div class="dz-sub">Arquivo com abas "TARDE 2026" e "MANHA 2026"</div>
-          <div class="dz-hint">Células no formato: <strong>MATERIA PROFESSOR</strong><br>ex: PORT LUZIA · MAT ANA ROSA · CIEN ZEFERINO</div>
+          <div class="dz-hint">Células no formato: <strong>MATERIA PROFESSOR</strong></div>
           <input type="file" id="f1" accept=".xlsx,.xls">
         </div>
         <div id="st1" style="margin-top:8px"></div>
@@ -157,7 +199,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
           <span class="dz-icon">📋</span>
           <div class="dz-title">Atribuição de Aulas .csv</div>
           <div class="dz-sub">Exportado do sistema SEDUC</div>
-          <div class="dz-hint">Colunas: <strong>Professor · Turma · Disciplina<br>Substituição · Início de Vigência</strong></div>
+          <div class="dz-hint">Para cruzamento e validação de professores reais.</div>
           <input type="file" id="f2" accept=".csv">
         </div>
         <div id="st2" style="margin-top:8px"></div>
@@ -166,16 +208,6 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 
     <div id="statusGeral" style="margin-top:1rem;display:none">
       <div class="msg msg-ok" id="statusMsg"></div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="btn btn-sm" onclick="togglePreview()">👁 Ver registros carregados</button>
-        <button class="btn btn-sm btn-primary" onclick="gerarGrade()">📋 Gerar grade agora</button>
-      </div>
-      <div id="previewSection" style="display:none;margin-top:1rem;overflow-x:auto">
-        <table class="tit-tbl" id="previewTbl">
-          <thead><tr><th>Professor</th><th>Turma</th><th>Período</th><th>Matéria</th><th>Dia</th><th>Aula</th></tr></thead>
-          <tbody id="previewBody"></tbody>
-        </table>
-      </div>
     </div>
   </div>
 
@@ -188,19 +220,14 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <span id="titCount" style="font-size:12px;color:var(--tx2)"></span>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-sm btn-primary" onclick="gerarGrade()">✅ Aplicar e Gerar</button>
-          <button class="btn btn-sm" onclick="resetarTitulares()">↺ Resetar</button>
+          <button class="btn btn-sm btn-primary" onclick="gerarGrade()">✅ Aplicar e Gerar Grade</button>
         </div>
-      </div>
-      <div style="font-size:12px;color:var(--tx2);line-height:1.7;margin-bottom:10px">
-        O sistema detectou automaticamente o professor mais recente em cada turma/disciplina.<br>
-        <span class="badge bn">!</span> = há mais de um professor — revise manualmente.
       </div>
       <div style="overflow-x:auto">
         <table class="tit-tbl">
           <thead><tr>
             <th>Turma</th><th>Per.</th><th>Disciplina (matéria na grade)</th>
-            <th>Mais recente (CSV)</th><th>Outros</th><th>Titular definido</th>
+            <th>Mais recente (CSV)</th><th>Titular definido</th>
           </tr></thead>
           <tbody id="titBody"></tbody>
         </table>
@@ -209,13 +236,12 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   </div>
 
   <div id="tab-imprimir" class="panel">
-    <div class="slabel">Gerar horários para impressão</div>
+    <div class="slabel">Gerar horários para impressão PDF massiva</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
 
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">👤 Por professor</div>
         <div style="margin-bottom:8px">
-          <label>Professor</label>
           <select id="printProf"><option value="">— Todos os professores —</option></select>
         </div>
         <button class="btn btn-primary" style="width:100%" onclick="imprimirPorProf()">🖨️ Imprimir</button>
@@ -224,7 +250,6 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">🕐 Por período</div>
         <div style="margin-bottom:8px">
-          <label>Período</label>
           <select id="printPer">
             <option value="Manhã">Manhã</option>
             <option value="Tarde">Tarde</option>
@@ -237,7 +262,6 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">📚 Por série / turma</div>
         <div style="margin-bottom:8px">
-          <label>Turma</label>
           <select id="printTurma"><option value="">— Todas as turmas —</option></select>
         </div>
         <button class="btn btn-purple" style="width:100%" onclick="imprimirPorTurma()">🖨️ Imprimir</button>
@@ -246,44 +270,38 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">📘 Por matéria</div>
         <div style="margin-bottom:8px">
-          <label>Matéria</label>
           <select id="printMat"><option value="">— Todas as matérias —</option></select>
         </div>
         <button class="btn btn-blue" style="width:100%" onclick="imprimirPorMateria()">🖨️ Imprimir</button>
       </div>
 
     </div>
-    <div class="msg msg-info" style="margin-top:1rem">
-      💡 Cada impressão abre uma nova página com grade pronta para imprimir (Ctrl+P). As páginas são separadas automaticamente.
-    </div>
   </div>
 </div>
 
 <div class="card no-print">
-  <div class="slabel">Visualizar grade</div>
+  <div class="slabel">Visualizar e Editar Grade</div>
   <div class="filters">
     <div><label>Professor</label><select id="fProf"><option value="">Todos</option></select></div>
     <div><label>Período</label><select id="fPer"><option value="">Todos</option><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>
     <div><label>Turma</label><select id="fTurma"><option value="">Todas</option></select></div>
     <div><label>Matéria</label><select id="fMat"><option value="">Todas</option></select></div>
-    <div><label>Exibir aulas de</label><select id="fVis">
-      <option value="professor">Por professor (turmas no slot)</option>
-      <option value="turma">Por turma (matérias no slot)</option>
-    </select></div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="btn btn-primary" onclick="gerarGrade()" style="width:100%">📋 Gerar Grade Editável</button>
+    </div>
   </div>
-</div>
-
-<div class="actions no-print">
-  <button class="btn btn-primary" onclick="gerarGrade()">📋 Gerar grade</button>
-  <button class="btn btn-red" onclick="exportPDF()">📄 PDF</button>
-  <button class="btn btn-green" onclick="exportXLSX()">📊 Excel</button>
 </div>
 
 <div id="msgBox"></div>
 
 <div id="gradeArea">
+  <div class="actions no-print" style="justify-content: flex-end; margin-bottom: 0.5rem;">
+    <button class="btn btn-red" onclick="exportPDF()">📄 Salvar PDF da Tela Atual</button>
+  </div>
+  
   <div id="atpcBox" style="display:none;margin-bottom:.75rem"></div>
   <div id="gradeTitle" style="font-size:16px;font-weight:700;text-align:center;color:var(--tx);margin-bottom:.75rem"></div>
+  
   <div class="card" style="padding:.75rem">
     <div class="grade-wrap">
       <table class="grade" id="horarioTabela">
@@ -295,28 +313,29 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
       </table>
     </div>
   </div>
+  
   <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 2px">
-    <span><span class="ac-tit">TITULAR</span> Professor responsável</span>
-    <span><span class="ac-sub">SUBSTITUTO</span> Substituindo o titular</span>
+    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada acima para alterá-las, adicionar um "Intervalo" ou "ATPC" manualmente antes de salvar o PDF.</p>
   </div>
 </div>
 
+<!-- Onde o window.print() renderiza as impressões massivas -->
 <div id="printArea"></div>
 
 <div id="emptySt" class="empty-st no-print">
   <div style="font-size:48px;margin-bottom:12px">📅</div>
   <div style="font-size:15px;font-weight:500;margin-bottom:6px">Carregue os arquivos para começar</div>
-  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários (obrigatório) e o CSV de atribuição (opcional).</div>
+  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários (obrigatório) e o CSV de atribuição (opcional) para cruzar dados.</div>
 </div>
 
 <script>
 // ======================================================
-// ESTADO
+// ESTADO E HORÁRIOS BASE
 // ======================================================
-let gradeXLSX = [];    // [{periodo, turma, dia, aula_idx, horario, materia, professor}]
-let atribuicaoCSV = [];// [{professor, turma, disciplina, periodo, substituicao, dataInicio, qtd}]
-let titulares = {};    // "TURMA||MATERIA" → professor
-let previewAberto = false;
+let gradeXLSX = [];    
+let atribuicaoCSV = [];
+let titulares = {};    
+let currentOptionsDropdown = "";
 
 const DIAS = ['Segunda','Terça','Quarta','Quinta','Sexta'];
 
@@ -324,16 +343,18 @@ const H_MANHA = [
   {n:'1ª aula',t:'07:00 – 07:50',int:false,idx:1},
   {n:'2ª aula',t:'07:50 – 08:40',int:false,idx:2},
   {n:'3ª aula',t:'08:40 – 09:30',int:false,idx:3},
-  {n:'Intervalo',t:'09:30 – 09:50',int:true},
+  {n:'Intervalo 1',t:'09:30 – 09:50',int:true},
   {n:'4ª aula',t:'09:50 – 10:40',int:false,idx:4},
+  {n:'Intervalo 2',t:'10:20 – 10:40',int:true},
   {n:'5ª aula',t:'10:40 – 11:30',int:false,idx:5},
   {n:'6ª aula',t:'11:30 – 12:20',int:false,idx:6},
 ];
 const H_TARDE = [
   {n:'1ª aula',t:'13:00 – 13:50',int:false,idx:1},
   {n:'2ª aula',t:'13:50 – 14:40',int:false,idx:2},
-  {n:'Intervalo',t:'14:40 – 15:00',int:true},
+  {n:'Intervalo 1',t:'14:40 – 15:00',int:true},
   {n:'3ª aula',t:'15:00 – 15:50',int:false,idx:3},
+  {n:'Intervalo 2',t:'15:30 – 15:50',int:true},
   {n:'4ª aula',t:'15:50 – 16:40',int:false,idx:4},
   {n:'5ª aula',t:'16:40 – 17:30',int:false,idx:5},
   {n:'6ª aula',t:'17:30 – 18:20',int:false,idx:6},
@@ -342,7 +363,7 @@ const H_TARDE = [
 function calcATPC(n){if(n<=4)return 1;if(n<=15)return 2;if(n<=24)return 3;if(n<=31)return 4;return 5}
 
 // ======================================================
-// TABS
+// TABS E UPLOADS
 // ======================================================
 function mudarAba(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -351,26 +372,8 @@ function mudarAba(id,el){
   document.getElementById('tab-'+id).classList.add('active');
 }
 
-// ======================================================
-// DRAG & DROP
-// ======================================================
-['dz1','dz2'].forEach(id=>{
-  const el=document.getElementById(id);
-  el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag')});
-  el.addEventListener('dragleave',()=>el.classList.remove('drag'));
-  el.addEventListener('drop',e=>{
-    e.preventDefault();el.classList.remove('drag');
-    const f=e.dataTransfer.files[0];
-    if(!f) return;
-    if(id==='dz1') processarXLSX(f);
-    else processarCSV(f);
-  });
-});
-
-// ======================================================
-// LEITURA XLSX
-// ======================================================
 document.getElementById('f1').addEventListener('change',e=>{ if(e.target.files[0]) processarXLSX(e.target.files[0]); });
+document.getElementById('f2').addEventListener('change',e=>{ if(e.target.files[0]) processarCSV(e.target.files[0]); });
 
 function processarXLSX(file){
   document.getElementById('st1').innerHTML=`<div class="msg msg-info">⏳ Lendo ${file.name}...</div>`;
@@ -384,12 +387,10 @@ function processarXLSX(file){
         const per=(/MANHA|MANHÃ/i.test(sn))?'Manhã':'Tarde';
         gradeXLSX.push(...parseAbaXLSX(wb.Sheets[sn], per));
       });
-      document.getElementById('st1').innerHTML=
-        `<div class="msg msg-ok">✅ <strong>${file.name}</strong> — ${gradeXLSX.length} aulas em ${wb.SheetNames.length} aba(s).</div>`;
+      document.getElementById('st1').innerHTML=`<div class="msg msg-ok">✅ <strong>${file.name}</strong> lido.</div>`;
       aposCarregar();
     } catch(err){
-      document.getElementById('st1').innerHTML=`<div class="msg msg-err">❌ ${err.message}</div>`;
-      console.error(err);
+      document.getElementById('st1').innerHTML=`<div class="msg msg-err">❌ Erro no arquivo XLSX</div>`;
     }
   };
   reader.readAsArrayBuffer(file);
@@ -451,26 +452,12 @@ function parsecelula(val){
   if(!val) return{mat:null,prof:null};
   const cel=val.toString().trim();
   if(isHorario(cel)||/INTERVALO/i.test(cel)) return{mat:null,prof:null};
-  const pref=[
-    'ED FISICA','ED. FISICA','EDUCACAO FISICA','EDUCAÇÃO FISICA','ED FIS','ED. FIS',
-    'ED FINANCEIRA','ED. FINANCEIRA','ED. FINAN','ED FINAN','ED FIN','ED, FINA',
-    'MAT APL','APR FILO','APRO GEO','APRO SOCI','APR M','APRO M',
-    'GESTAO FIN','GESTAO OP','GESTAO DE OP','GESTAO  DE OP',
-    'FUNDA. LOG','ARTES E MÍDIAS','ARTE E MIDIAS',
-    'ARTE','ARTES','CIEN','CIENCIAS','PORT','MAT','GEO','HIST','HISTORIA',
-    'INGLES','INGLÊS','ING','QUIM','QUIMICA','BIO','BIOLOGIA',
-    'FISICA','FISI','FIS','FÍS','FÍSICA',
-    'REDACAO','REDAÇÃO','RED','TEC','TECNOLOGIA',
-    'ODEP','ODEM','PV','CARREIRA','PROJETO','INOVA',
-    'COMU','MARKETING','ESTOQUE','INTRO','SOCIO','SOCIOLOGIA',
-    'FILO','FILOSOFIA','LIDE','ATUALIDADES','APRO','APR','ORAT'
-  ].sort((a,b)=>b.length-a.length);
+  const pref=['ED FISICA','MAT APL','PROJETO DE VIDA','ARTES','ARTE','PORT','MAT','GEO','HIST','INGLES','QUIM','BIO','FISICA','REDACAO','SOCIOLOGIA','FILOSOFIA','CIEN'].sort((a,b)=>b.length-a.length);
   
   const cu=cel.toUpperCase();
   for(const p of pref){
     if(cu.startsWith(p)){
       let prof=cel.substring(p.length).trim().replace(/^[.\- ]+/,'').trim();
-      prof=prof.replace(/^\d+\s*/,'').trim();
       if(prof) return{mat:p,prof:prof.toUpperCase()};
     }
   }
@@ -482,11 +469,11 @@ function parsecelula(val){
 function detectarDia(s){
   if(!s) return null;
   const l=s.toLowerCase();
-  if(l.startsWith('2')&&l.includes('feira')) return 'Segunda';
-  if(l.startsWith('3')&&l.includes('feira')) return 'Terça';
-  if(l.startsWith('4')&&l.includes('feira')) return 'Quarta';
-  if(l.startsWith('5')&&l.includes('feira')) return 'Quinta';
-  if((l.startsWith('6')&&l.includes('feira'))||l.startsWith('6º')) return 'Sexta';
+  if(l.startsWith('2')) return 'Segunda';
+  if(l.startsWith('3')) return 'Terça';
+  if(l.startsWith('4')) return 'Quarta';
+  if(l.startsWith('5')) return 'Quinta';
+  if(l.startsWith('6')) return 'Sexta';
   return null;
 }
 
@@ -497,16 +484,16 @@ function isHorario(s){
 
 function mapIdx(h,per){
   if(per==='Manhã'){
-    if(h.includes('07:00')||/^1\s*AULA/i.test(h)) return 1;
-    if(h.includes('07:50')||/^2[ºª°°]/i.test(h)) return 2;
-    if(h.includes('08:40')||/^3[ºª°°]/i.test(h)) return 3;
-    if(h.includes('09:50')||/^4[ºª°°]/i.test(h)) return 4;
-    if(h.includes('10:40')||/^5[ºª°°]/i.test(h)) return 5;
-    if(h.includes('11:30')||/^6[ºª°°]/i.test(h)) return 6;
+    if(h.includes('07:00')) return 1;
+    if(h.includes('07:50')) return 2;
+    if(h.includes('08:40')) return 3;
+    if(h.includes('09:50')) return 4;
+    if(h.includes('10:40')) return 5;
+    if(h.includes('11:30')) return 6;
   } else {
     if(h.includes('13:00')) return 1;
     if(h.includes('13:50')) return 2;
-    if(h.includes('14:40')||h.includes('15:00')) return 3;
+    if(h.includes('15:00')) return 3;
     if(h.includes('15:50')) return 4;
     if(h.includes('16:40')) return 5;
     if(h.includes('17:30')) return 6;
@@ -514,15 +501,7 @@ function mapIdx(h,per){
   return 0;
 }
 
-function limpStr(v){
-  if(v===null||v===undefined) return '';
-  return v.toString().trim().toUpperCase().replace(/\s+/g,' ');
-}
-
-// ======================================================
-// LEITURA CSV ATRIBUIÇÃO COM LEITOR TURBINADO
-// ======================================================
-document.getElementById('f2').addEventListener('change',e=>{ if(e.target.files[0]) processarCSV(e.target.files[0]); });
+function limpStr(v){ return v===null||v===undefined ? '' : v.toString().trim().toUpperCase().replace(/\s+/g,' '); }
 
 function processarCSV(file){
   document.getElementById('st2').innerHTML=`<div class="msg msg-info">⏳ Lendo ${file.name}...</div>`;
@@ -530,77 +509,40 @@ function processarCSV(file){
   reader.onload=function(evt){
     try {
       atribuicaoCSV=parseCSV(evt.target.result);
-      if(atribuicaoCSV.length===0) throw new Error("Nenhum dado encontrado. O arquivo não é da SEDUC.");
-      document.getElementById('st2').innerHTML=
-        `<div class="msg msg-ok">✅ <strong>${file.name}</strong> — ${atribuicaoCSV.length} registros lidos.</div>`;
+      if(atribuicaoCSV.length===0) throw new Error("Vazio.");
+      document.getElementById('st2').innerHTML=`<div class="msg msg-ok">✅ <strong>${file.name}</strong> lido.</div>`;
       aposCarregar();
     } catch(err){
-      document.getElementById('st2').innerHTML=`<div class="msg msg-err">❌ ${err.message}</div>`;
-      console.error(err);
+      document.getElementById('st2').innerHTML=`<div class="msg msg-err">❌ Erro no CSV</div>`;
     }
   };
-  // Lê com encoding correto para não quebrar acentos de professores
   reader.readAsText(file,'windows-1252');
 }
 
 function parseCSV(text){
   const lines=text.split(/\r?\n/).filter(l=>l.trim());
   let hi=-1;
-  // Busca em todo o arquivo a linha de cabeçalho verdadeira, ignorando a introdução
   for(let i=0;i<lines.length;i++){
     if(lines[i].includes('Professor')&&lines[i].includes('Turma')){hi=i;break}
   }
-  if(hi===-1) throw new Error('Cabeçalho não encontrado no CSV. Exporte corretamente da Seduc.');
-  
+  if(hi===-1) throw new Error('Cabeçalho não encontrado.');
   const sep=lines[hi].includes(';')?';':',';
-  const heads=splitLine(lines[hi],sep).map(h=>h.trim().replace(/"/g,''));
+  const heads=lines[hi].split(sep).map(h=>h.trim().replace(/"/g,''));
   const idx=(col)=>heads.findIndex(h=>norm(h)===norm(col));
+  const iProf=idx('Professor'),iTurma=idx('Turma'),iDisc=idx('Disciplina'),iSub=idx('Substituição'),iInicio=idx('Início de Vigência'),iQtd=idx('Qtde. Aulas');
   
-  const iProf=idx('Professor'),iTurma=idx('Turma'),iDisc=idx('Disciplina');
-  const iSub=idx('Substituição'),iInicio=idx('Início de Vigência');
-  const iQtd=idx('Qtde. Aulas');
-  
-  if(iProf<0||iTurma<0) throw new Error('Colunas Essenciais (Professor/Turma) não encontradas.');
-  
+  if(iProf<0||iTurma<0) throw new Error('Colunas não encontradas.');
   const res=[];
   for(let i=hi+1;i<lines.length;i++){
-    const p=splitLine(lines[i],sep).map(v=>v.trim().replace(/"/g,''));
-    const prof=p[iProf]||'';
-    if(!prof) continue;
-    const turmaRaw=p[iTurma]||'';
-    const disc=p[iDisc]||'';
-    const sub=norm(p[iSub]||'').includes('substitui');
-    const inicio=p[iInicio]||'';
-    const qtd=parseInt(p[iQtd])||1;
-    const {turma,periodo}=parseTurma(turmaRaw);
-    res.push({professor:prof.trim().toUpperCase(),turmaRaw,turma,periodo,disciplina:disc.trim().toUpperCase(),substituicao:sub,inicio,dataInicio:parseData(inicio),qtd});
+    const p=lines[i].split(sep).map(v=>v.trim().replace(/"/g,''));
+    const prof=p[iProf]||''; if(!prof) continue;
+    res.push({professor:prof.toUpperCase(), turma:p[iTurma]||'', disciplina:(p[iDisc]||'').toUpperCase(), substituicao:norm(p[iSub]||'').includes('substitui'), dataInicio:parseData(p[iInicio]||''), qtd:parseInt(p[iQtd])||1});
   }
   return res;
 }
 
-function parseTurma(raw){
-  let periodo='Manhã';
-  if(/TARDE/i.test(raw)) periodo='Tarde';
-  let turma=raw.replace(/\bTARDE\b/gi,'').replace(/\bMANHA\b/gi,'').replace(/\bMANHÃ\b/gi,'')
-    .replace(/\bANUAL\b/gi,'').replace(/\bSEMESTRAL\b/gi,'').replace(/\s{2,}/g,' ').trim();
-  return{turma,periodo};
-}
-
-function splitLine(line,sep){
-  const r=[];let cur='',q=false;
-  for(const c of line){
-    if(c==='"'){q=!q}else if(c===sep&&!q){r.push(cur);cur=''}else cur+=c;
-  }
-  r.push(cur);return r;
-}
-
-function parseData(s){
-  const m=(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  return m?parseInt(m[3]+m[2]+m[1]):0;
-}
-
+function parseData(s){ const m=(s||'').match(/(\d{2})\/(\d{2})\/(\d{4})/); return m?parseInt(m[3]+m[2]+m[1]):0; }
 function norm(s){return(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim()}
-function normP(s){return norm(s)}
 
 // ======================================================
 // APÓS CARREGAR
@@ -609,134 +551,36 @@ function aposCarregar(){
   if(!gradeXLSX.length) return;
   construirTitulares();
   atualizarFiltros();
-  renderPreview();
-  const total=gradeXLSX.length;
-  const profs=new Set(gradeXLSX.map(r=>r.professor)).size;
-  const turmas=new Set(gradeXLSX.map(r=>r.turma)).size;
-  document.getElementById('statusMsg').textContent=
-    `✅ Grade carregada: ${total} aulas · ${profs} professores · ${turmas} turmas`;
+  document.getElementById('statusMsg').textContent=`✅ Grade carregada: ${gradeXLSX.length} aulas.`;
   document.getElementById('statusGeral').style.display='block';
   document.getElementById('emptySt').style.display='none';
 }
 
-// ======================================================
-// TITULARES — cruzamento XLSX × CSV
-// ======================================================
 function construirTitulares(){
   const combos={};
   gradeXLSX.forEach(r=>{
     const k=`${r.turma}||${r.materia}`;
-    if(!combos[k]) combos[k]={turma:r.turma,periodo:r.periodo,materia:r.materia,profs:new Map()};
-    const cnt=combos[k].profs.get(r.professor)||0;
-    combos[k].profs.set(r.professor,cnt+1);
-  });
-
-  const csvPorTurmaDisc={};
-  atribuicaoCSV.forEach(r=>{
-    const kn=`${normTurma(r.turma)}||${normDisc(r.disciplina)}`;
-    if(!csvPorTurmaDisc[kn]) csvPorTurmaDisc[kn]=[];
-    csvPorTurmaDisc[kn].push(r);
+    if(!combos[k]) combos[k]={turma:r.turma,materia:r.materia,profs:new Map()};
+    combos[k].profs.set(r.professor, (combos[k].profs.get(r.professor)||0)+1);
   });
 
   Object.entries(combos).forEach(([k,g])=>{
-    if(titulares[k]) return; 
-
-    let titCSV=null;
-    const [turmaK,matK]=k.split('||');
-    const csvKey=`${normTurma(turmaK)}||${normDisc(matK)}`;
-    if(csvPorTurmaDisc[csvKey]){
-      const candidatos=csvPorTurmaDisc[csvKey].filter(r=>!r.substituicao);
-      if(candidatos.length){
-        const mais=candidatos.sort((a,b)=>b.dataInicio-a.dataInicio)[0];
-        titCSV=mais.professor;
-      }
-    }
-
-    if(titCSV){
-      const profNorm=norm(titCSV);
-      let match=null;
-      g.profs.forEach((_,p)=>{
-        if(!match && (norm(p)===profNorm || profNorm.includes(norm(p)) || norm(p).split(' ').some(w=>w.length>3&&profNorm.includes(w)))){
-          match=p;
-        }
-      });
-      titulares[k]=match||[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0];
-    } else {
-      titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0];
-    }
+    titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0]; 
   });
 
-  renderTitulares(combos, csvPorTurmaDisc);
-}
-
-function normTurma(s){
-  return norm(s).replace(/\b(tarde|manha|manha|anual|semestral)\b/g,'').replace(/\s+/g,'').trim();
-}
-
-function normDisc(s){
-  const mapa={'lingua portuguesa':'port','linguaportuguesa':'port','matematica':'mat','mat':'mat',
-    'ciencias':'cien','historia':'hist','geografia':'geo','ingles':'ingles','ingles':'ingles',
-    'arte':'arte','artes':'arte','educacao fisica':'ed fisica','educacaofisica':'ed fisica',
-    'redacao':'redacao','redação':'redacao','projeto de vida':'pv','projetodeivida':'pv',
-    'biologia':'bio','quimica':'quim','fisica':'fis'};
-  const n=norm(s).replace(/\s+/g,'');
-  return mapa[n]||n.substring(0,5);
-}
-
-function renderTitulares(combos, csvMap){
   const body=document.getElementById('titBody');
   body.innerHTML='';
-  const chaves=Object.keys(combos).sort();
-  const conflitos=chaves.filter(k=>combos[k].profs.size>1).length;
-  document.getElementById('titCount').textContent=
-    `${chaves.length} combinações turma+matéria · ${conflitos} com múltiplos professores`;
-  document.getElementById('titMsg').textContent=
-    `O sistema cruzou a grade com ${atribuicaoCSV.length>0?'o CSV de atribuição':'a frequência na grade'} para pré-selecionar o titular. Revise os marcados com !`;
-
-  chaves.forEach(k=>{
-    const g=combos[k];
-    const bc=g.periodo==='Manhã'?'bm':'bt';
-    const curTit=titulares[k]||'';
-    const profsArr=[...g.profs.keys()];
-    const conflito=profsArr.length>1;
-    const opts=profsArr.map(p=>`<option value="${esc(p)}" ${curTit===p?'selected':''}>${p}</option>`).join('');
-    const outros=profsArr.filter(p=>p!==curTit).map(p=>priNome(p)).join(', ')||'—';
-
-    const csvKey=`${normTurma(g.turma)}||${normDisc(g.materia)}`;
-    const csvReg=csvMap[csvKey];
-    let csvInfo='—';
-    if(csvReg){
-      const mais=csvReg.sort((a,b)=>b.dataInicio-a.dataInicio)[0];
-      csvInfo=`${priNome(mais.professor)} (${mais.inicio})`;
-    }
-
-    body.innerHTML+=`<tr>
-      <td style="font-weight:600">${g.turma}</td>
-      <td><span class="badge ${bc}">${g.periodo}</span></td>
-      <td>${g.materia} ${conflito?'<span class="badge bn">!</span>':''}</td>
-      <td style="font-size:11px">${csvInfo}</td>
-      <td style="font-size:11px;color:var(--tx2)">${outros}</td>
-      <td><select onchange="setTitular('${k.replace(/'/g,"\\'").replace(/\|/g,'\\|')}',this.value)">
-        <option value="">— Auto —</option>${opts}
-      </select></td>
-    </tr>`;
+  Object.keys(combos).sort().forEach(k=>{
+    const profsArr=[...combos[k].profs.keys()];
+    body.innerHTML+=`<tr><td>${combos[k].turma}</td><td>—</td><td>${combos[k].materia}</td><td>—</td><td><select onchange="titulares['${k}']=this.value">${profsArr.map(p=>`<option value="${p}">${p}</option>`).join('')}</select></td></tr>`;
   });
-
   document.getElementById('titEmpty').style.display='none';
   document.getElementById('titWrap').style.display='block';
 }
 
-function setTitular(k,v){ k=k.replace(/\\\|/g,'|').replace(/\\'/g,"'"); if(v) titulares[k]=v; else delete titulares[k]; }
-function resetarTitulares(){ titulares={}; construirTitulares(); msg('info','↺ Titulares resetados.'); }
-
-// ======================================================
-// FILTROS & OPÇÕES
-// ======================================================
 function atualizarFiltros(){
   const profs=new Set(),turmas=new Set(),mats=new Set();
-  gradeXLSX.forEach(r=>{
-    profs.add(r.professor); turmas.add(r.turma); mats.add(r.materia);
-  });
+  gradeXLSX.forEach(r=>{ profs.add(r.professor); turmas.add(r.turma); mats.add(r.materia); });
   fillSel('fProf',profs); fillSel('fTurma',turmas); fillSel('fMat',mats);
   fillSel('printProf',profs,'— Todos os professores —');
   fillSel('printTurma',turmas,'— Todas as turmas —');
@@ -747,33 +591,12 @@ function fillSel(id,set,placeholder){
   const el=document.getElementById(id);
   const cur=el.value;
   el.innerHTML=`<option value="">${placeholder||'Todos'}</option>`;
-  Array.from(set).sort().forEach(v=>el.innerHTML+=`<option value="${esc(v)}">${v}</option>`);
+  Array.from(set).sort().forEach(v=>el.innerHTML+=`<option value="${v}">${v}</option>`);
   if(cur) el.value=cur;
 }
 
 // ======================================================
-// PREVIEW
-// ======================================================
-function togglePreview(){
-  previewAberto=!previewAberto;
-  document.getElementById('previewSection').style.display=previewAberto?'block':'none';
-}
-
-function renderPreview(){
-  const body=document.getElementById('previewBody');
-  body.innerHTML='';
-  gradeXLSX.slice(0,60).forEach(r=>{
-    body.innerHTML+=`<tr>
-      <td>${priNome(r.professor)}</td><td>${r.turma}</td>
-      <td><span class="badge ${r.periodo==='Manhã'?'bm':'bt'}">${r.periodo}</span></td>
-      <td>${r.materia}</td><td>${r.dia}</td><td>${r.aula_idx}ª</td>
-    </tr>`;
-  });
-  if(gradeXLSX.length>60) body.innerHTML+=`<tr><td colspan="6" style="text-align:center;color:var(--tx3);font-style:italic">... e mais ${gradeXLSX.length-60} registros</td></tr>`;
-}
-
-// ======================================================
-// GERAR GRADE PRINCIPAL
+// GERADOR DA GRADE EDITÁVEL
 // ======================================================
 function gerarGrade(){
   if(!gradeXLSX.length){ msg('err','⚠️ Carregue o arquivo Excel primeiro.'); return; }
@@ -783,82 +606,100 @@ function gerarGrade(){
   const fPer=document.getElementById('fPer').value;
   const fTurma=document.getElementById('fTurma').value;
   const fMat=document.getElementById('fMat').value;
-  const fVis=document.getElementById('fVis').value;
 
-  let dados=gradeXLSX.filter(r=>
-    (!fProf||r.professor===fProf)&&
-    (!fPer||normP(r.periodo)===normP(fPer))&&
-    (!fTurma||r.turma===fTurma)&&
-    (!fMat||r.materia===fMat)
-  );
+  let dados=gradeXLSX.filter(r=> (!fProf||r.professor===fProf) && (!fPer||r.periodo===fPer) && (!fTurma||r.turma===fTurma) && (!fMat||r.materia===fMat));
+  if(!dados.length){ msg('warn','Nenhum resultado com esses filtros.'); return; }
 
-  if(!dados.length){ msg('warn','Nenhum resultado com os filtros selecionados.'); return; }
+  let buildOptions = `<option value="">— Livre —</option>
+                      <option value="☕ Intervalo">☕ Intervalo</option>
+                      <option value="📌 ATPC">📌 ATPC</option>
+                      <option value="Janela">Janela / Vago</option>`;
+                      
+  const listToChoose = new Set();
+  dados.forEach(r => {
+      if(fProf) listToChoose.add(`${r.turma} - ${r.materia}`);
+      else if(fTurma) listToChoose.add(`${r.materia} - ${r.professor}`);
+      else listToChoose.add(`${r.turma} - ${r.materia} (${r.professor})`);
+  });
+  Array.from(listToChoose).sort().forEach(item => {
+      buildOptions += `<option value="${item}">${item}</option>`;
+  });
+  
+  currentOptionsDropdown = buildOptions;
 
-  dados=dados.map(r=>({...r,...calcTitular(r)}));
-
-  let titulo='Grade de horários — 2026';
+  let titulo='Grade Editável — 2026';
   if(fProf) titulo=`Prof. ${fProf} — Grade Semanal`;
   else if(fTurma) titulo=`Turma ${fTurma} — Grade Semanal`;
   document.getElementById('gradeTitle').textContent=titulo;
 
-  // ATPC
-  if(fProf){
-    const total=gradeXLSX.filter(r=>r.professor===fProf).length;
-    const atpc=calcATPC(total);
-    document.getElementById('atpcBox').innerHTML=
-      `<div class="atpc-box">📊 <strong>ATPC — Prof. ${fProf}:</strong> ${total} aulas/semana → <strong>${atpc} ATPC(s) coletiva(s)</strong> (Res. SEDUC 105/2024). <em style="font-size:11px">*Salas regulares</em></div>`;
-    document.getElementById('atpcBox').style.display='block';
-  } else {
-    document.getElementById('atpcBox').style.display='none';
-  }
-
-  renderGrade(document.getElementById('tBody'), dados, fProf, fTurma, fVis, fPer?[fPer]:['Manhã','Tarde']);
+  renderGrade(document.getElementById('tBody'), dados, fProf, fTurma, fPer?[fPer]:['Manhã','Tarde'], true);
 
   document.getElementById('gradeArea').style.display='block';
   document.getElementById('emptySt').style.display='none';
 }
 
-function calcTitular(r){
-  const k=`${r.turma}||${r.materia}`;
-  const tit=titulares[k];
-  const eTitular=!tit||r.professor===tit;
-  return{eTitular,titular:tit||r.professor};
-}
-
-function renderGrade(tbody, dados, fProf, fTurma, fVis, periodos){
+function renderGrade(tbody, dados, fProf, fTurma, periodos, isInteractive = false){
   tbody.innerHTML='';
   periodos.forEach(per=>{
-    const dp=dados.filter(r=>normP(r.periodo)===normP(per));
-    if(!dp.length) return;
+    const dp=dados.filter(r=>r.periodo===per);
+    if(!dp.length && isInteractive===false) return; 
+    
     const tr=document.createElement('tr');
     tr.innerHTML=`<td colspan="6" class="td-per">${per}</td>`;
     tbody.appendChild(tr);
+    
     const hlist=per==='Manhã'?H_MANHA:H_TARDE;
     
     hlist.forEach(h=>{
       const tr=document.createElement('tr');
       if(h.int){
-        tr.innerHTML=`<td class="td-h"><span class="h-n">${h.n}</span><br><span class="h-t">${h.t}</span></td><td colspan="5" class="td-int">— intervalo —</td>`;
+          if(!isInteractive) {
+              tr.innerHTML=`<td class="td-h"><span class="h-n">${h.n}</span><br><span class="h-t">${h.t}</span></td><td colspan="5" class="td-int">— intervalo —</td>`;
+          } else {
+              let html=`<td class="td-h" style="background:#FFF8E7"><span class="h-n" style="color:#BA7517">${h.n}</span><br><span class="h-t">${h.t}</span></td>`;
+              DIAS.forEach(dia=>{
+                html+=`<td class="td-aula" style="background:#FFF8E7">
+                        <select class="interactive-select" style="color:#BA7517" onchange="colorirSelect(this)">
+                            <option value="☕ Intervalo">☕ Intervalo</option>
+                            <option value="">— Livre —</option>
+                            ${currentOptionsDropdown}
+                        </select>
+                       </td>`;
+              });
+              tr.innerHTML=html;
+          }
       } else {
         let html=`<td class="td-h"><span class="h-n">${h.n}</span><br><span class="h-t">${h.t}</span></td>`;
         DIAS.forEach(dia=>{
           const slots=dp.filter(r=>r.dia===dia&&r.aula_idx===h.idx);
-          if(!slots.length){ html+=`<td class="td-vazio">·</td>`; return; }
           html+=`<td class="td-aula">`;
-          slots.forEach(a=>{
-            const bg=a.eTitular?'':'background:#FFFBEB;';
-            html+=`<div class="aula-cell" style="${bg}">`;
-            if(fProf){
-              html+=`<div class="ac-turma">${a.turma}</div><div class="ac-mat">${a.materia}</div>`;
-            } else if(fTurma){
-              html+=`<div class="ac-mat">${a.materia}</div><div class="ac-prof">${priNome(a.professor)}</div>`;
-            } else {
-              html+=`<div class="ac-turma">${a.turma}</div><div class="ac-mat">${a.materia}</div><div class="ac-prof">${priNome(a.professor)}</div>`;
-            }
-            if(a.eTitular) html+=`<span class="ac-tit">TITULAR</span>`;
-            else html+=`<span class="ac-sub">SUBSTITUTO p/ ${priNome(a.titular)}</span>`;
-            html+=`</div>`;
-          });
+          
+          if(isInteractive) {
+              let selectedValue = "";
+              if(slots.length > 0) {
+                  let a = slots[0];
+                  if(fProf) selectedValue = `${a.turma} - ${a.materia}`;
+                  else if(fTurma) selectedValue = `${a.materia} - ${a.professor}`;
+                  else selectedValue = `${a.turma} - ${a.materia} (${a.professor})`;
+              }
+              
+              let customOpt = selectedValue && !currentOptionsDropdown.includes(`value="${selectedValue}"`) ? `<option value="${selectedValue}">${selectedValue}</option>` : '';
+              
+              html+=`<select class="interactive-select" onchange="colorirSelect(this)">
+                      <option value="">— Livre —</option>
+                      ${customOpt}
+                      ${currentOptionsDropdown.replace(`<option value="${selectedValue}">`, `<option value="${selectedValue}" selected>`)}
+                     </select>`;
+          } else {
+              if(!slots.length){ html+=`<div style="text-align:center; color:#A0AABA">·</div>`; }
+              else {
+                  slots.forEach(a=>{
+                    if(fProf){ html+=`<div class="ac-turma">${a.turma}</div><div class="ac-mat">${a.materia}</div>`; } 
+                    else if(fTurma){ html+=`<div class="ac-mat">${a.materia}</div><div class="ac-prof">${priNome(a.professor)}</div>`; } 
+                    else { html+=`<div class="ac-turma">${a.turma}</div><div class="ac-mat">${a.materia}</div><div class="ac-prof">${priNome(a.professor)}</div>`; }
+                  });
+              }
+          }
           html+=`</td>`;
         });
         tr.innerHTML=html;
@@ -866,10 +707,32 @@ function renderGrade(tbody, dados, fProf, fTurma, fVis, periodos){
       tbody.appendChild(tr);
     });
   });
+  
+  if(isInteractive) {
+      setTimeout(() => {
+          document.querySelectorAll('.interactive-select').forEach(sel => colorirSelect(sel));
+      }, 100);
+  }
+}
+
+function colorirSelect(el) {
+    if(el.value.includes("ATPC")) {
+        el.parentElement.style.background = "#F3F0FF";
+        el.style.color = "#6D28D9";
+    } else if (el.value.includes("Intervalo")) {
+        el.parentElement.style.background = "#FFF8E7";
+        el.style.color = "#BA7517";
+    } else if (el.value !== "") {
+        el.parentElement.style.background = "#F0F7FF";
+        el.style.color = "#0C447C";
+    } else {
+        el.parentElement.style.background = "#FFF";
+        el.style.color = "#0F1824";
+    }
 }
 
 // ======================================================
-// IMPRESSÃO E SEPARAÇÃO DE MATÉRIAS
+// IMPRESSÃO E SEPARAÇÃO MASSIVAS
 // ======================================================
 function imprimirPorProf(){
   if(!gradeXLSX.length){ msg('err','Carregue o Excel primeiro.'); return; }
@@ -878,75 +741,57 @@ function imprimirPorProf(){
   
   gerarPaginasImpressao(profs.map(p=>{
     const aulasDoProf = gradeXLSX.filter(r=>r.professor===p);
-    // Identifica e lista todas as matérias que este professor dá aula no subtitulo
     const matsDoProf = [...new Set(aulasDoProf.map(r=>r.materia))].join(', ');
-    
     return {
       titulo:`Professor(a): ${p}`,
       subtitulo:`Disciplinas vinculadas: ${matsDoProf} | Grade Semanal — ${new Date().getFullYear()}`,
-      dados:aulasDoProf.map(r=>({...r,...calcTitular(r)})),
-      fProf:p, fTurma:'',
+      dados:aulasDoProf, fProf:p, fTurma:'',
       periodos:[...new Set(aulasDoProf.map(r=>r.periodo))]
     };
   }));
 }
 
 function imprimirPorPeriodo(){
-  if(!gradeXLSX.length){ msg('err','Carregue o Excel primeiro.'); return; }
+  if(!gradeXLSX.length) return;
   const per=document.getElementById('printPer').value;
   const periodos=per?[per]:['Manhã','Tarde'];
   gerarPaginasImpressao(periodos.map(p=>({
-    titulo:`Período: ${p}`,
-    subtitulo:`Grade Completa — ${new Date().getFullYear()}`,
-    dados:gradeXLSX.filter(r=>normP(r.periodo)===normP(p)).map(r=>({...r,...calcTitular(r)})),
-    fProf:'', fTurma:'',
-    periodos:[p]
+    titulo:`Período: ${p}`, subtitulo:`Grade Completa — ${new Date().getFullYear()}`,
+    dados:gradeXLSX.filter(r=>r.periodo===p), fProf:'', fTurma:'', periodos:[p]
   })));
 }
 
 function imprimirPorTurma(){
-  if(!gradeXLSX.length){ msg('err','Carregue o Excel primeiro.'); return; }
+  if(!gradeXLSX.length) return;
   const sel=document.getElementById('printTurma').value;
   const turmas=sel?[sel]:[...new Set(gradeXLSX.map(r=>r.turma))].sort();
   gerarPaginasImpressao(turmas.map(t=>({
-    titulo:`Turma: ${t}`,
-    subtitulo:`Grade Semanal — ${new Date().getFullYear()}`,
-    dados:gradeXLSX.filter(r=>r.turma===t).map(r=>({...r,...calcTitular(r)})),
-    fProf:'', fTurma:t,
+    titulo:`Turma: ${t}`, subtitulo:`Grade Semanal — ${new Date().getFullYear()}`,
+    dados:gradeXLSX.filter(r=>r.turma===t), fProf:'', fTurma:t,
     periodos:[...new Set(gradeXLSX.filter(r=>r.turma===t).map(r=>r.periodo))]
   })));
 }
 
-// NOVA FUNÇÃO: Imprimir focado apenas na Matéria
 function imprimirPorMateria(){
-  if(!gradeXLSX.length){ msg('err','Carregue o Excel primeiro.'); return; }
+  if(!gradeXLSX.length) return;
   const sel=document.getElementById('printMat').value;
   const mats=sel?[sel]:[...new Set(gradeXLSX.map(r=>r.materia))].sort();
-  
   gerarPaginasImpressao(mats.map(m=>({
-    titulo:`Disciplina: ${m}`,
-    subtitulo:`Relatório de Aulas por Disciplina — ${new Date().getFullYear()}`,
-    dados:gradeXLSX.filter(r=>r.materia===m).map(r=>({...r,...calcTitular(r)})),
-    fProf:'', fTurma:'',
+    titulo:`Disciplina: ${m}`, subtitulo:`Relatório de Aulas por Disciplina — ${new Date().getFullYear()}`,
+    dados:gradeXLSX.filter(r=>r.materia===m), fProf:'', fTurma:'',
     periodos:[...new Set(gradeXLSX.filter(r=>r.materia===m).map(r=>r.periodo))]
   })));
 }
 
 function gerarPaginasImpressao(paginas){
-  if(!paginas.length||paginas.every(p=>!p.dados.length)){
-    msg('warn','Nenhum dado encontrado com esse filtro para imprimir.');return;
-  }
+  if(!paginas.length||paginas.every(p=>!p.dados.length)){ msg('warn','Nenhum dado.');return; }
   const area=document.getElementById('printArea');
-  area.innerHTML='';
-  area.style.display='block';
+  area.innerHTML=''; area.style.display='block';
 
   paginas.forEach((pg,pi)=>{
     if(!pg.dados.length) return;
     const div=document.createElement('div');
     div.className='print-page';
-    const tbody=document.createElement('tbody');
-    tbody.id=`ptb_${pi}`;
-
     div.innerHTML=`
       <div class="print-header">
         <h2>${pg.titulo}</h2>
@@ -966,44 +811,60 @@ function gerarPaginasImpressao(paginas){
         </table>
       </div>`;
     area.appendChild(div);
-    renderGrade(div.querySelector(`#ptb_${pi}`), pg.dados, pg.fProf, pg.fTurma, 'professor', pg.periodos);
+    renderGrade(div.querySelector(`#ptb_${pi}`), pg.dados, pg.fProf, pg.fTurma, pg.periodos, false);
   });
 
   setTimeout(()=>window.print(), 400);
 }
 
 // ======================================================
-// EXPORTAR (PDF/XLSX Tela Principal)
+// EXPORTAR PDF DA TELA (COM AS CAIXINHAS)
 // ======================================================
 function exportPDF(){
   const el=document.getElementById('gradeArea');
   if(el.style.display==='none'){ alert('Gere a grade primeiro.'); return; }
+  
+  // Clona o nó para não afetar a interface visível do usuário
+  const clone = el.cloneNode(true);
+  
+  // Transforma os selects selecionados em texto simples antes de gerar PDF
+  clone.querySelectorAll('.interactive-select').forEach(sel => {
+      const valor = sel.value;
+      const cor = sel.style.color || '#000';
+      const novoSpan = document.createElement('div');
+      novoSpan.textContent = valor || "·";
+      novoSpan.style.fontWeight = 'bold';
+      novoSpan.style.color = cor;
+      novoSpan.style.textAlign = 'center';
+      novoSpan.style.padding = '4px';
+      sel.parentNode.replaceChild(novoSpan, sel);
+  });
+
   html2pdf().set({
-    margin:.4, filename:'horario-2026.pdf',
-    image:{type:'jpeg',quality:.98},
+    margin: [0.3, 0.4, 0.3, 0.4], 
+    filename:'horario-editado.pdf',
+    image:{type:'jpeg',quality:0.98},
     html2canvas:{scale:2},
     jsPDF:{unit:'in',format:'a4',orientation:'landscape'}
-  }).from(el).save();
+  }).from(clone).save();
 }
 
 function exportXLSX(){
   if(document.getElementById('gradeArea').style.display==='none'){ alert('Gere a grade primeiro.'); return; }
-  const ws=XLSX.utils.table_to_sheet(document.getElementById('horarioTabela'));
+  
+  // Para extrair em Excel precisamos pegar apenas o texto das opções selecionadas
+  const table = document.getElementById('horarioTabela').cloneNode(true);
+  table.querySelectorAll('.interactive-select').forEach(sel => {
+      const val = document.createTextNode(sel.value || "Livre");
+      sel.parentNode.replaceChild(val, sel);
+  });
+
+  const ws=XLSX.utils.table_to_sheet(table);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'Horário');
   XLSX.writeFile(wb,'Horario-Escolar-2026.xlsx');
 }
 
-// ======================================================
-// UTILS
-// ======================================================
-function priNome(s){
-  if(!s) return '';
-  const p=s.trim().split(' ');
-  if(p.length<=2) return s;
-  return p[0]+' '+p[p.length-1];
-}
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function msg(tipo,txt){
   const t={'ok':'msg-ok','err':'msg-err','info':'msg-info','warn':'msg-warn'};
   document.getElementById('msgBox').innerHTML=`<div class="msg ${t[tipo]||'msg-info'}">${txt}</div>`;
