@@ -103,8 +103,6 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .interactive-select:hover { background-color: var(--blue-lt); border-color: var(--blue); }
 .interactive-select:focus { background-color: #fff; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(24,95,165,.15); }
 
-.hidden { display: none !important; }
-
 .ac-turma{font-size:11px;font-weight:700;color:var(--tx)}
 .ac-mat{font-size:11px;color:var(--blue-dk);font-weight:600}
 .ac-prof{font-size:10px;color:var(--tx2)}
@@ -252,6 +250,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 <div id="gradeArea">
   <div class="actions no-print" style="justify-content: flex-end; margin-bottom: 0.5rem; gap: 8px;">
     <button class="btn btn-sm" style="background:#f1f5f9; border-color:#cbd5e1; color:#475569" onclick="limparGrade()">🧹 Limpar Grade</button>
+    <button class="btn btn-green" onclick="exportXLSX()">📊 Salvar em Excel</button>
     <button class="btn btn-red" onclick="exportPDF()">📄 Salvar PDF da Tela Atual</button>
   </div>
   
@@ -271,7 +270,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   </div>
   
   <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 2px">
-    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada para alterá-las livremente antes de gerar o PDF.</p>
+    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada para alterá-las livremente antes de gerar o PDF ou Excel.</p>
   </div>
 </div>
 
@@ -693,9 +692,6 @@ function colorirSelect(el) {
     }
 }
 
-// ======================================================
-// LIMPAR GRADE
-// ======================================================
 function limparGrade() {
   if(confirm("Tem certeza que deseja apagar toda a grade editável?")) {
     document.querySelectorAll('#horarioTabela .interactive-select').forEach(sel => {
@@ -703,6 +699,71 @@ function limparGrade() {
         colorirSelect(sel);
     });
   }
+}
+
+// ======================================================
+// EXPORTAR EXCEL PERFEITO
+// ======================================================
+function exportXLSX(){
+  if(document.getElementById('gradeArea').style.display==='none'){ alert('Gere a grade primeiro.'); return; }
+  
+  const table = document.getElementById('horarioTabela');
+  const rows = table.querySelectorAll('tr');
+  const matriz = [];
+
+  rows.forEach(tr => {
+      let linhaArr = [];
+      const cols = tr.querySelectorAll('th, td');
+      
+      cols.forEach(col => {
+          if (col.tagName.toLowerCase() === 'th') {
+              linhaArr.push(col.innerText.trim());
+          }
+          else if (col.classList.contains('td-per')) {
+              linhaArr.push(col.innerText.trim());
+          }
+          else if (col.classList.contains('td-h')) {
+              linhaArr.push(col.innerText.replace(/\n/g, ' ').trim());
+          }
+          else if (col.classList.contains('td-int')) {
+              linhaArr.push("INTERVALO");
+          }
+          else {
+              const select = col.querySelector('.interactive-select');
+              if (select) {
+                  linhaArr.push(select.value || "Livre / Vago");
+              } else {
+                  const divs = col.querySelectorAll('div');
+                  if (divs.length > 0) {
+                      let texto = [];
+                      divs.forEach(d => {
+                          if(d.innerText && d.innerText !== '·' && !d.classList.contains('print-value')) {
+                              texto.push(d.innerText.trim());
+                          }
+                      });
+                      linhaArr.push(texto.join('\n'));
+                  } else {
+                      linhaArr.push(col.innerText.trim() || "-");
+                  }
+              }
+          }
+      });
+      
+      if(cols.length === 2 && cols[1].classList.contains('td-int')) {
+         linhaArr.push("INTERVALO", "INTERVALO", "INTERVALO", "INTERVALO");
+      }
+      
+      matriz.push(linhaArr);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(matriz);
+  ws['!cols'] = [{wch: 18}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 25}];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Horário');
+  
+  const titulo = document.getElementById('gradeTitle').innerText;
+  XLSX.writeFile(wb, `Horario_${titulo.replace(/[^a-z0-9]/gi, '_')}.xlsx`);
 }
 
 // ======================================================
@@ -792,20 +853,18 @@ function gerarPaginasImpressao(paginas){
 }
 
 // ======================================================
-// EXPORTAR PDF DA TELA EM UMA ÚNICA PÁGINA FIXA (A4 RETRATO)
+// EXPORTAR PDF DA TELA EM UMA ÚNICA PÁGINA FIXA
 // ======================================================
 function exportPDF(){
   const el=document.getElementById('gradeArea');
   if(el.style.display==='none'){ alert('Gere a grade primeiro.'); return; }
   
-  // Ocultar botões nativamente
   el.classList.add('pdf-compact');
   const acts = el.querySelector('.actions');
   if(acts) acts.style.display = 'none';
   const hints = el.querySelectorAll('.no-print');
   hints.forEach(h => h.style.display = 'none');
   
-  // Transformar os selects em divs visuais para a "foto"
   el.querySelectorAll('.interactive-select').forEach(sel => {
       const printDiv = sel.nextElementSibling;
       printDiv.textContent = sel.value || "·";
@@ -819,9 +878,8 @@ function exportPDF(){
     filename:'horario-editado.pdf',
     image:{type:'jpeg',quality:0.98},
     html2canvas:{scale:2, useCORS:true},
-    jsPDF:{unit:'in',format:'a4',orientation:'portrait'} // Forçado retrato
+    jsPDF:{unit:'in',format:'a4',orientation:'portrait'} 
   }).from(el).save().then(() => {
-      // Devolver o DOM ao normal
       el.classList.remove('pdf-compact');
       if(acts) acts.style.display = '';
       hints.forEach(h => h.style.display = '');
