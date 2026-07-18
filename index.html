@@ -7,22 +7,15 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-/* IMPRESSÃO NATIVA (Botão Imprimir Massivo) */
 @media print {
   .no-print { display:none!important; }
   .print-page { page-break-after: always; }
   body { background:#fff; margin: 0; padding: 0; }
   .page { max-width: 100%; padding: 0.5rem; margin: 0; }
   .card { box-shadow:none!important; border:1px solid #ccc!important; margin-bottom: 0.5rem; padding: 0.5rem!important; }
-  
   table.grade th, table.grade td { padding: 2px 3px!important; font-size: 9px!important; }
   .th-h { width: 85px!important; }
   .td-per { padding: 3px 5px!important; font-size: 10px!important; }
-  .h-n { font-size: 10px!important; }
-  .h-t { font-size: 8px!important; }
-  .ac-turma { font-size: 10px!important; }
-  .ac-mat { font-size: 10px!important; }
-  .ac-prof { font-size: 9px!important; }
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -103,6 +96,8 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .interactive-select:hover { background-color: var(--blue-lt); border-color: var(--blue); }
 .interactive-select:focus { background-color: #fff; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(24,95,165,.15); }
 
+.hidden { display: none !important; }
+
 .ac-turma{font-size:11px;font-weight:700;color:var(--tx)}
 .ac-mat{font-size:11px;color:var(--blue-dk);font-weight:600}
 .ac-prof{font-size:10px;color:var(--tx2)}
@@ -121,23 +116,28 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 .empty-st{text-align:center;padding:4rem 1rem;color:var(--tx2)}
 
 /* ========================================================
-   COMPRESSÃO PARA O PDF GERADO DO BOTÃO VERMELHO
+   COMPRESSÃO AVANÇADA PARA EXPORTAÇÃO PDF DA TELA
+   (Garante que caiba em 1 folha A4 PAISAGEM)
    ======================================================== */
 .pdf-compact {
   background: #ffffff !important;
-  width: 760px !important; /* Força largura do A4 em retrato */
-  margin: 0 auto !important;
   padding: 10px !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
 }
 .pdf-compact .card { border: none !important; box-shadow: none !important; padding: 0 !important; margin: 0 !important; }
-.pdf-compact table.grade th, .pdf-compact table.grade td { padding: 4px !important; font-size: 10px !important; }
-.pdf-compact .td-per { padding: 4px !important; font-size: 11px !important; }
+.pdf-compact table.grade { width: 100% !important; table-layout: fixed !important; }
+.pdf-compact table.grade th, .pdf-compact table.grade td { padding: 2px !important; font-size: 8px !important; }
+.pdf-compact .td-per { padding: 2px !important; font-size: 9px !important; }
 .pdf-compact .th-h { width: 12% !important; }
-.pdf-compact .h-n { font-size: 10px !important; }
-.pdf-compact .h-t { font-size: 8px !important; }
-.pdf-compact .ac-turma, .pdf-compact .ac-mat { font-size: 10px !important; }
-.pdf-compact .ac-prof { font-size: 9px !important; }
-.pdf-compact .print-value { font-size: 10px !important; padding: 4px 0 !important; text-align: center; font-weight: bold; }
+.pdf-compact .td-aula { width: 17.6% !important; }
+.pdf-compact .h-n { font-size: 9px !important; }
+.pdf-compact .h-t { font-size: 7px !important; }
+.pdf-compact .ac-turma, .pdf-compact .ac-mat { font-size: 8px !important; }
+.pdf-compact .ac-prof { font-size: 7px !important; }
+.pdf-compact #gradeTitle { font-size: 14px !important; margin-bottom: 4px !important; }
+.pdf-compact .atpc-box { font-size: 9px !important; padding: 4px 6px !important; margin-bottom: 4px !important; }
+.pdf-compact .print-value { font-size: 9px !important; font-weight: bold; text-align: center; }
 </style>
 </head>
 <body>
@@ -147,15 +147,14 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div style="font-size:32px">📅</div>
   <div>
     <h1>Sistema de Horários Escolares</h1>
-    <div class="sub">Leitura Avançada · Validação por Atribuição · Grade Editável</div>
+    <div class="sub">Leitura Avançada · Grade Editável Manualmente</div>
   </div>
 </div>
 
 <div class="card no-print">
   <div class="tabs">
     <div class="tab active" onclick="mudarAba('arquivos',this)">📂 Arquivos</div>
-    <div class="tab" onclick="mudarAba('titular',this)">👤 Professor Titular</div>
-    <div class="tab" onclick="mudarAba('imprimir',this)">🖨️ Imprimir Massivo</div>
+    <div class="tab" onclick="mudarAba('imprimir',this)">🖨️ Impressão Massiva</div>
   </div>
 
   <div id="tab-arquivos" class="panel active">
@@ -176,8 +175,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
         <div class="dropzone" id="dz2" onclick="document.getElementById('f2').click()">
           <span class="dz-icon">📋</span>
           <div class="dz-title">Atribuição de Aulas .csv</div>
-          <div class="dz-sub">Exportado do sistema SEDUC</div>
-          <div class="dz-hint">Para cruzamento e validação de professores.</div>
+          <div class="dz-sub">Para checar regras e ATPC</div>
           <input type="file" id="f2" accept=".csv">
         </div>
         <div id="st2" style="margin-top:8px"></div>
@@ -188,59 +186,31 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
     </div>
   </div>
 
-  <div id="tab-titular" class="panel">
-    <div id="titEmpty" style="text-align:center;padding:2rem;color:var(--tx2)">⚠️ Carregue os arquivos primeiro.</div>
-    <div id="titWrap" style="display:none">
-      <div class="msg msg-info" id="titMsg"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <span id="titCount" style="font-size:12px;color:var(--tx2)"></span>
-        <button class="btn btn-sm btn-primary" onclick="gerarGrade()">✅ Aplicar e Gerar Grade</button>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="tit-tbl">
-          <thead><tr><th>Turma</th><th>Per.</th><th>Disciplina</th><th>Mais recente (CSV)</th><th>Titular definido</th></tr></thead>
-          <tbody id="titBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
   <div id="tab-imprimir" class="panel">
-    <div class="slabel">Gerar horários para impressão massiva</div>
+    <div class="slabel">Gerar horários para impressão massiva (Sem Edição)</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">👤 Por professor</div>
         <div style="margin-bottom:8px"><select id="printProf"><option value="">— Todos —</option></select></div>
-        <button class="btn btn-primary" style="width:100%" onclick="imprimirPorProf()">🖨️ Imprimir</button>
-      </div>
-      <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
-        <div style="font-size:14px;font-weight:600;margin-bottom:8px">🕐 Por período</div>
-        <div style="margin-bottom:8px"><select id="printPer"><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option><option value="">Ambos</option></select></div>
-        <button class="btn btn-green" style="width:100%" onclick="imprimirPorPeriodo()">🖨️ Imprimir</button>
+        <button class="btn btn-primary" style="width:100%" onclick="imprimirPorProf()">🖨️ Imprimir Tudo</button>
       </div>
       <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
         <div style="font-size:14px;font-weight:600;margin-bottom:8px">📚 Por série / turma</div>
         <div style="margin-bottom:8px"><select id="printTurma"><option value="">— Todas —</option></select></div>
-        <button class="btn btn-purple" style="width:100%" onclick="imprimirPorTurma()">🖨️ Imprimir</button>
-      </div>
-      <div style="border:1.5px solid var(--bor2);border-radius:var(--r);padding:1rem">
-        <div style="font-size:14px;font-weight:600;margin-bottom:8px">📘 Por matéria</div>
-        <div style="margin-bottom:8px"><select id="printMat"><option value="">— Todas —</option></select></div>
-        <button class="btn btn-blue" style="width:100%" onclick="imprimirPorMateria()">🖨️ Imprimir</button>
+        <button class="btn btn-purple" style="width:100%" onclick="imprimirPorTurma()">🖨️ Imprimir Tudo</button>
       </div>
     </div>
   </div>
 </div>
 
 <div class="card no-print">
-  <div class="slabel">Visualizar e Editar Grade</div>
+  <div class="slabel">Editar Manualmente a Grade de um Professor ou Turma</div>
   <div class="filters">
     <div><label>Professor</label><select id="fProf"><option value="">Todos</option></select></div>
     <div><label>Período</label><select id="fPer"><option value="">Todos</option><option value="Manhã">Manhã</option><option value="Tarde">Tarde</option></select></div>
     <div><label>Turma</label><select id="fTurma"><option value="">Todas</option></select></div>
-    <div><label>Matéria</label><select id="fMat"><option value="">Todas</option></select></div>
     <div style="display:flex;align-items:flex-end">
-      <button class="btn btn-primary" onclick="gerarGrade()" style="width:100%">📋 Gerar Grade Editável</button>
+      <button class="btn btn-primary" onclick="gerarGrade()" style="width:100%">📋 Buscar para Editar</button>
     </div>
   </div>
 </div>
@@ -250,7 +220,8 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 <div id="gradeArea">
   <div class="actions no-print" style="justify-content: flex-end; margin-bottom: 0.5rem; gap: 8px;">
     <button class="btn btn-sm" style="background:#f1f5f9; border-color:#cbd5e1; color:#475569" onclick="limparGrade()">🧹 Limpar Grade</button>
-    <button class="btn btn-green" onclick="exportXLSX()">📊 Salvar em Excel</button>
+    <button class="btn btn-green" onclick="exportXLSX()">📊 Baixar Excel</button>
+    <!-- BOTÃO DE PDF REESCRITO -->
     <button class="btn btn-red" onclick="exportPDF()">📄 Salvar PDF da Tela Atual</button>
   </div>
   
@@ -270,7 +241,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   </div>
   
   <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 2px">
-    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada para alterá-las livremente antes de gerar o PDF ou Excel.</p>
+    <p>💡 <strong>Dica:</strong> Altere as matérias, insira Intervalos ou ATPCs clicando nas células acima. Depois clique no botão vermelho para gerar o PDF da folha exata que você montou.</p>
   </div>
 </div>
 
@@ -278,14 +249,13 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 
 <div id="emptySt" class="empty-st no-print">
   <div style="font-size:48px;margin-bottom:12px">📅</div>
-  <div style="font-size:15px;font-weight:500;margin-bottom:6px">Carregue os arquivos para começar</div>
-  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários e o CSV de atribuição para validação.</div>
+  <div style="font-size:15px;font-weight:500;margin-bottom:6px">Nenhum dado selecionado.</div>
+  <div style="font-size:13px;color:var(--tx3)">Carregue os arquivos e busque um professor para editar a grade.</div>
 </div>
 
 <script>
 let gradeXLSX = [];    
 let atribuicaoCSV = [];
-let titulares = {};    
 let currentOptionsDropdown = "";
 
 const DIAS = ['Segunda','Terça','Quarta','Quinta','Sexta'];
@@ -515,23 +485,10 @@ function norm(s){return(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').t
 
 function aposCarregar(){
   if(!gradeXLSX.length) return;
-  construirTitulares();
   atualizarFiltros();
   document.getElementById('statusMsg').textContent=`✅ Grade carregada: ${gradeXLSX.length} aulas.`;
   document.getElementById('statusGeral').style.display='block';
   document.getElementById('emptySt').style.display='none';
-}
-
-function construirTitulares(){
-  const combos={};
-  gradeXLSX.forEach(r=>{
-    const k=`${r.turma}||${r.materia}`;
-    if(!combos[k]) combos[k]={turma:r.turma,materia:r.materia,profs:new Map()};
-    combos[k].profs.set(r.professor, (combos[k].profs.get(r.professor)||0)+1);
-  });
-  Object.entries(combos).forEach(([k,g])=>{
-    titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0]; 
-  });
 }
 
 function atualizarFiltros(){
@@ -540,7 +497,6 @@ function atualizarFiltros(){
   fillSel('fProf',profs); fillSel('fTurma',turmas); fillSel('fMat',mats);
   fillSel('printProf',profs,'— Todos os professores —');
   fillSel('printTurma',turmas,'— Todas as turmas —');
-  fillSel('printMat',mats,'— Todas as matérias —');
 }
 
 function fillSel(id,set,placeholder){
@@ -702,7 +658,7 @@ function limparGrade() {
 }
 
 // ======================================================
-// EXPORTAR EXCEL PERFEITO
+// EXPORTAR EXCEL
 // ======================================================
 function exportXLSX(){
   if(document.getElementById('gradeArea').style.display==='none'){ alert('Gere a grade primeiro.'); return; }
@@ -807,17 +763,6 @@ function imprimirPorTurma(){
   })));
 }
 
-function imprimirPorMateria(){
-  if(!gradeXLSX.length) return;
-  const sel=document.getElementById('printMat').value;
-  const mats=sel?[sel]:[...new Set(gradeXLSX.map(r=>r.materia))].sort();
-  gerarPaginasImpressao(mats.map(m=>({
-    titulo:`Disciplina: ${m}`, subtitulo:`Relatório de Aulas por Disciplina — ${new Date().getFullYear()}`,
-    dados:gradeXLSX.filter(r=>r.materia===m), fProf:'', fTurma:'',
-    periodos:[...new Set(gradeXLSX.filter(r=>r.materia===m).map(r=>r.periodo))]
-  })));
-}
-
 function gerarPaginasImpressao(paginas){
   if(!paginas.length||paginas.every(p=>!p.dados.length)){ msg('warn','Nenhum dado.');return; }
   const area=document.getElementById('printArea');
@@ -853,13 +798,15 @@ function gerarPaginasImpressao(paginas){
 }
 
 // ======================================================
-// EXPORTAR PDF DA TELA EM UMA ÚNICA PÁGINA FIXA
+// EXPORTAR PDF DA TELA EDITADA
 // ======================================================
 function exportPDF(){
-  const el=document.getElementById('gradeArea');
-  if(el.style.display==='none'){ alert('Gere a grade primeiro.'); return; }
+  const el = document.getElementById('gradeArea');
+  if(el.style.display === 'none'){ alert('Gere a grade primeiro.'); return; }
   
+  // 1. Transforma temporariamente a tabela e selects para prepará-los para a "foto" do PDF
   el.classList.add('pdf-compact');
+  
   const acts = el.querySelector('.actions');
   if(acts) acts.style.display = 'none';
   const hints = el.querySelectorAll('.no-print');
@@ -873,16 +820,19 @@ function exportPDF(){
       printDiv.classList.remove('hidden');
   });
 
+  // 2. Tira a foto usando proporções que garantem caber em A4 Paisagem (Landscape)
   html2pdf().set({
-    margin: [0.3, 0.3, 0.3, 0.3], 
-    filename:'horario-editado.pdf',
-    image:{type:'jpeg',quality:0.98},
-    html2canvas:{scale:2, useCORS:true},
-    jsPDF:{unit:'in',format:'a4',orientation:'portrait'} 
+    margin: 0.2, // Margens mínimas em polegadas
+    filename: 'horario-editado.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } // PAISAGEM para as colunas de Segunda a Sexta caberem
   }).from(el).save().then(() => {
+      
+      // 3. Devolve a tela ao normal para continuar a edição
       el.classList.remove('pdf-compact');
-      if(acts) acts.style.display = '';
-      hints.forEach(h => h.style.display = '');
+      if(acts) acts.style.display = 'flex'; // Volta a aparecer o botão
+      hints.forEach(h => h.style.display = 'flex'); // Volta a aparecer a dica
       
       el.querySelectorAll('.interactive-select').forEach(sel => {
           const printDiv = sel.nextElementSibling;
@@ -892,6 +842,13 @@ function exportPDF(){
   });
 }
 
+// UTILS
+function priNome(s){
+  if(!s) return '';
+  const p=s.trim().split(' ');
+  if(p.length<=2) return s;
+  return p[0]+' '+p[p.length-1];
+}
 function msg(tipo,txt){
   const t={'ok':'msg-ok','err':'msg-err','info':'msg-info','warn':'msg-warn'};
   document.getElementById('msgBox').innerHTML=`<div class="msg ${t[tipo]||'msg-info'}">${txt}</div>`;
