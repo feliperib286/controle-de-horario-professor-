@@ -10,6 +10,7 @@
 /* IMPRESSÃO NATIVA (Botão Imprimir Massivo) */
 @media print {
   .no-print { display:none!important; }
+  #gradeArea { display:none!important; } 
   .print-page { page-break-after: always; }
   body { background:#fff; margin: 0; padding: 0; }
   .page { max-width: 100%; padding: 0.5rem; margin: 0; }
@@ -126,7 +127,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
    COMPRESSÃO PARA O PDF GERADO (BOTÃO VERMELHO)
    ======================================================== */
 .pdf-compact {
-  width: 1050px !important; /* Força largura A4 Paisagem */
+  width: 1050px !important; 
   max-width: 1050px !important;
   margin: 0 auto !important;
   padding: 15px !important;
@@ -151,7 +152,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div style="font-size:32px">📅</div>
   <div>
     <h1>Sistema de Horários Escolares</h1>
-    <div class="sub">Leitura Avançada · Validação por Atribuição · Grade Editável em PDF (Correção Branca)</div>
+    <div class="sub">Leitura Avançada · Validação por Atribuição · Grade Editável Limpa</div>
   </div>
 </div>
 
@@ -195,7 +196,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div id="tab-titular" class="panel">
     <div id="titEmpty" style="text-align:center;padding:2rem;color:var(--tx2)">⚠️ Carregue os arquivos primeiro.</div>
     <div id="titWrap" style="display:none">
-      <div class="msg msg-info" id="titMsg"></div>
+      <div class="msg msg-info" id="titMsg">Abaixo a distribuição e titulares pré-definidos.</div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
         <span id="titCount" style="font-size:12px;color:var(--tx2)"></span>
         <button class="btn btn-sm btn-primary" onclick="gerarGrade()">✅ Aplicar e Gerar Grade</button>
@@ -251,9 +252,10 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
 
 <div id="msgBox"></div>
 
+<!-- AQUI FICA A TELA DA GRADE -->
 <div id="gradeArea">
   <div class="actions no-print" style="justify-content: flex-end; margin-bottom: 0.5rem; gap: 8px;">
-    <button class="btn btn-sm" style="background:#f1f5f9; border-color:#cbd5e1; color:#475569" onclick="fecharGrade()">❌ Fechar</button>
+    <button class="btn btn-sm" style="background:#f1f5f9; border-color:#cbd5e1; color:#475569" onclick="fecharGrade()">❌ Fechar Edição</button>
     <button class="btn btn-sm" style="background:#f1f5f9; border-color:#cbd5e1; color:#475569" onclick="limparGrade()">🧹 Limpar Grade</button>
     <button class="btn btn-green" onclick="exportXLSX()">📊 Salvar em Excel</button>
     <button class="btn btn-red" onclick="exportPDF()">📄 Salvar PDF da Tela Atual</button>
@@ -262,7 +264,7 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   <div id="atpcBox" style="display:none;margin-bottom:.75rem"></div>
   <div id="gradeTitle" style="font-size:16px;font-weight:700;text-align:center;color:var(--tx);margin-bottom:.75rem"></div>
   
-  <div class="card" style="padding:.75rem">
+  <div class="card" style="padding:.75rem" id="captureContainer">
     <div class="grade-wrap">
       <table class="grade" id="horarioTabela">
         <thead><tr>
@@ -275,17 +277,17 @@ select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(24,9
   </div>
   
   <div class="no-print" style="display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--tx2);margin-top:6px;padding:0 2px">
-    <p>💡 <strong>Dica:</strong> Você pode clicar nas aulas dentro da grade gerada acima para alterá-las, adicionar um "Intervalo" ou "ATPC" manualmente antes de salvar o PDF.</p>
+    <p>💡 <strong>Dica:</strong> Altere as aulas nos selects e, ao clicar no botão de PDF, o sistema ajustará perfeitamente à largura do A4 em Paisagem.</p>
   </div>
 </div>
 
-<!-- Onde o window.print() renderiza as impressões massivas -->
+<!-- AQUI É ONDE ELE MONTA O MOLDE PARA IMPRESSÃO MASSIVA E DEPOIS DELETA -->
 <div id="printArea"></div>
 
 <div id="emptySt" class="empty-st no-print">
   <div style="font-size:48px;margin-bottom:12px">📅</div>
   <div style="font-size:15px;font-weight:500;margin-bottom:6px">Carregue os arquivos para começar</div>
-  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários e o CSV de atribuição (opcional) para cruzar dados.</div>
+  <div style="font-size:13px;color:var(--tx3)">Carregue o Excel de horários e o CSV de atribuição para validação.</div>
 </div>
 
 <script>
@@ -320,11 +322,17 @@ const H_TARDE = [
   {n:'6ª aula',t:'17:30 – 18:20',int:false,idx:6},
 ];
 
+// OUVINTE PARA APAGAR MOLDE DO PRINT AUTOMATICAMENTE
+window.addEventListener('afterprint', () => {
+    const pArea = document.getElementById('printArea');
+    if (pArea) {
+        pArea.style.display = 'none';
+        pArea.innerHTML = '';
+    }
+});
+
 function calcATPC(n){if(n<=4)return 1;if(n<=15)return 2;if(n<=24)return 3;if(n<=31)return 4;return 5}
 
-// ======================================================
-// TABS E UPLOADS
-// ======================================================
 function mudarAba(id,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -530,7 +538,7 @@ function aposCarregar(){
   if(!gradeXLSX.length) return;
   construirTitulares();
   atualizarFiltros();
-  document.getElementById('statusMsg').textContent=`✅ Grade carregada: ${gradeXLSX.length} aulas.`;
+  document.getElementById('statusMsg').textContent=`✅ Grade carregada: ${gradeXLSX.length} aulas encontradas.`;
   document.getElementById('statusGeral').style.display='block';
   document.getElementById('emptySt').style.display='none';
 }
@@ -543,7 +551,16 @@ function construirTitulares(){
     combos[k].profs.set(r.professor, (combos[k].profs.get(r.professor)||0)+1);
   });
   Object.entries(combos).forEach(([k,g])=>{
-    titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0]; 
+    if (g.profs.size > 0) {
+        titulares[k]=[...g.profs.entries()].sort((a,b)=>b[1]-a[1])[0][0]; 
+    }
+  });
+  
+  const body=document.getElementById('titBody');
+  body.innerHTML='';
+  Object.keys(combos).sort().forEach(k=>{
+    const profsArr=[...combos[k].profs.keys()];
+    body.innerHTML+=`<tr><td>${combos[k].turma}</td><td>—</td><td>${combos[k].materia}</td><td>—</td><td><select onchange="titulares['${k}']=this.value">${profsArr.map(p=>`<option value="${p}">${p}</option>`).join('')}</select></td></tr>`;
   });
 }
 
@@ -706,7 +723,7 @@ function colorirSelect(el) {
 }
 
 // ======================================================
-// BOTÕES DE TELA EDITÁVEL
+// BOTÕES DA GRADE EDITÁVEL
 // ======================================================
 function fecharGrade() {
   document.getElementById('gradeArea').style.display = 'none';
@@ -784,60 +801,7 @@ function exportXLSX(){
 }
 
 // ======================================================
-// EXPORTAR PDF DA TELA EDITADA (SOLUÇÃO P/ TELA BRANCA E TAMANHO)
-// ======================================================
-function exportPDF(){
-  const el = document.getElementById('gradeArea');
-  if(el.style.display === 'none'){ alert('Gere a grade primeiro.'); return; }
-  
-  // 1. Esconde os botões e dicas visualmente
-  const acts = el.querySelector('.actions');
-  if(acts) acts.style.display = 'none';
-  const hints = el.querySelectorAll('.no-print');
-  hints.forEach(h => h.style.display = 'none');
-  
-  // 2. Transforma selects em texto diretamente no DOM da tela (para o html2canvas não se perder)
-  el.querySelectorAll('.interactive-select').forEach(sel => {
-      const printDiv = sel.nextElementSibling;
-      printDiv.textContent = sel.value || "·";
-      printDiv.style.color = sel.style.color || '#0F1824';
-      sel.classList.add('hidden');
-      printDiv.classList.remove('hidden');
-  });
-
-  // 3. Adiciona a classe que comprime a tela, forçando 1050px (tamanho do A4 Paisagem)
-  el.classList.add('pdf-compact');
-
-  // 4. Dá um pequeno delay de 100ms para a tela renderizar a compressão, previnindo a folha branca
-  setTimeout(() => {
-      html2pdf().set({
-        margin: 0.2, // Margens mínimas na foto
-        filename: 'horario-editado.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-            scale: 2, 
-            useCORS: true,
-            scrollY: 0  // Garante que tira a foto do topo, evitando páginas brancas
-        },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } // A4 Deitado
-      }).from(el).save().then(() => {
-          
-          // 5. Restaura tudo ao normal depois de salvar o PDF
-          el.classList.remove('pdf-compact');
-          if(acts) acts.style.display = 'flex';
-          hints.forEach(h => h.style.display = '');
-          
-          el.querySelectorAll('.interactive-select').forEach(sel => {
-              const printDiv = sel.nextElementSibling;
-              sel.classList.remove('hidden'); 
-              printDiv.classList.add('hidden');
-          });
-      });
-  }, 100);
-}
-
-// ======================================================
-// IMPRESSÃO MASSIVA NATIVA
+// IMPRESSÃO E SEPARAÇÃO MASSIVAS
 // ======================================================
 function imprimirPorProf(){
   if(!gradeXLSX.length){ msg('err','Carregue o Excel primeiro.'); return; }
@@ -919,10 +883,66 @@ function gerarPaginasImpressao(paginas){
     renderGrade(div.querySelector(`#ptb_${pi}`), pg.dados, pg.fProf, pg.fTurma, pg.periodos, false);
   });
 
-  setTimeout(()=>window.print(), 400);
+  // Aguarda a renderização das tabelas no DOM e puxa a tela de impressão do navegador
+  setTimeout(() => {
+      window.print();
+      // O sistema operacional pausa o código aqui até você fechar a janela de impressão
+      // Assim que fechar a janela (imprimindo ou não), ele roda isso para limpar o lixo da tela:
+      area.style.display = 'none';
+      area.innerHTML = '';
+  }, 400);
 }
 
-// UTILS
+// ======================================================
+// EXPORTAR PDF DA TELA EDITADA
+// ======================================================
+function exportPDF(){
+  const container = document.getElementById('captureContainer');
+  if(!container){ alert('Gere a grade primeiro.'); return; }
+  
+  const el = container.cloneNode(true);
+  el.id = 'pdf-clone';
+  
+  const acts = el.querySelector('.actions');
+  if(acts) acts.style.display = 'none';
+  const hints = el.querySelectorAll('.no-print');
+  hints.forEach(h => h.style.display = 'none');
+  
+  el.querySelectorAll('.interactive-select').forEach(sel => {
+      const valor = sel.value;
+      const cor = sel.style.color || '#0F1824';
+      const div = document.createElement('div');
+      div.textContent = valor || " "; 
+      div.style.fontWeight = 'bold';
+      div.style.color = cor;
+      div.style.textAlign = 'center';
+      div.style.padding = '6px';
+      div.style.fontSize = '12px';
+      sel.parentNode.replaceChild(div, sel);
+  });
+
+  const wrapper = document.createElement('div');
+  wrapper.style.width = '1120px'; 
+  wrapper.style.padding = '20px';
+  wrapper.style.background = '#ffffff';
+  wrapper.style.boxSizing = 'border-box';
+  wrapper.appendChild(el);
+  
+  wrapper.style.position = 'absolute';
+  wrapper.style.left = '-9999px';
+  document.body.appendChild(wrapper);
+
+  html2pdf().set({
+    margin: 0.2, 
+    filename: 'horario-editado.pdf',
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } 
+  }).from(wrapper).save().then(() => {
+      document.body.removeChild(wrapper);
+  });
+}
+
 function priNome(s){
   if(!s) return '';
   const p=s.trim().split(' ');
